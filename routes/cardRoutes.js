@@ -11,6 +11,7 @@ import {
   deleteCategory,
   updateCategory,
   downloadFile,
+  // getCardBySlug,
 } from "../controllers/cardController.js";
 
 import { sendOtp, verifyOtp, googleAuth } from "../controllers/authController.js";
@@ -35,8 +36,6 @@ router.get("/cards/:id", getCardById);
 
 router.post("/cards/category", uploadCardByCategory);
 
-// router.post("/cards/drive-upload", uploadCardWithDriveLink);
-
 router.put("/cards/drive-update", UpdateCardWithDriveLink);
 
 router.put("/cards/update-category", updateCategory);
@@ -49,5 +48,9 @@ router.post("/google-auth", googleAuth);
 
 // Define the route for downloading files
 router.get('/download/:fileId', downloadFile);
+
+// router.get('/cards/slug/:slug', getCardBySlug);
+
+
 
 export default router;
