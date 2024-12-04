@@ -23,6 +23,7 @@ const bookingSchema = new mongoose.Schema({
     service: {
         type: String,
         required: true,
+        enum: ["Headshots", "Portrait", "Wedding & Events", "Interior", "Other"], 
     },
     message: {
         type: String,
@@ -34,7 +35,7 @@ const bookingSchema = new mongoose.Schema({
     },
     time: {
         type: String,
-        required: true,
+        
     },
     createdAt: {
         type: Date,
