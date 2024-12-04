@@ -6,6 +6,8 @@ import path from 'path';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
 import cloudinary from 'cloudinary';
+import morgan from 'morgan';
+import moment from 'moment-timezone';
 const app = express();
 
 dotenv.config({
@@ -18,6 +20,26 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 const __filename = fileURLToPath(import.meta.url);
+
+
+  // Custom format string with the IST timestamp token
+  const morganFormat = '":method :url HTTP/:http-version" :status :res[content-length] ":referrer"';
+  
+
+// Middleware to log HTTP requests using morgan
+app.use(morgan(morganFormat, {
+  stream: {
+    write: (message) => {
+      console.log(message); // Use console.log to output logs
+    }
+  }
+}));
+
+
+// Custom token to log timestamp in IST
+morgan.token('istDate', (req, res) => {
+  return moment().tz('Asia/Kolkata').format('DD/MMM/YYYY:HH:mm:ss ZZ');
+});
 
 
 // app.use(cors(
