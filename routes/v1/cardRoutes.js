@@ -12,16 +12,16 @@ import {
   updateCategory,
   downloadFile,
   // getCardBySlug,
-} from "../controllers/cardController.js";
+} from "../../controllers/cardController.js";
 
-import { sendOtp, verifyOtp, googleAuth } from "../controllers/authController.js";
+import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
 // import { sendBookingEmail } from "../controllers/bookingController.js";
 import {
   createBooking,
   getAllBookings,
   getBooking,
   deleteBooking,
-} from '../controllers/bookingController.js';
+} from '../../controllers/bookingController.js';
 
 
 const router = express.Router();

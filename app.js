@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import connectDB from './config/db.js';
-import cardRoutes from './routes/cardRoutes.js';
+import routes from './routes/index.js';
 import path from 'path';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
@@ -75,7 +75,7 @@ app.use(express.json({
 }));
 
 
-app.use('/api', cardRoutes);
+app.use('/api/v1', routes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
