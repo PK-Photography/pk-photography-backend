@@ -59,17 +59,6 @@ router.get('/download/:fileId', downloadFile);
 
 // router.get('/cards/slug/:slug', getCardBySlug);
 //  ===================|| Booking Routes ||======================
-// router.post("/booking/email", sendBookingEmail);
-router.post('/booking/request', createBooking);
-
-// Get all bookings
-router.get('/booking/all', getAllBookings);
-
-// Get a single booking
-router.get('/booking/:id', getBooking);
-
-// Delete a booking
-router.delete('booking/:id', deleteBooking);
 
 
 

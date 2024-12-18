@@ -10,42 +10,80 @@ import mongoose from "mongoose"
  * @param {Function} next : The next middleware function.
  * @return {void}
  */
+export const checkAuthenticate = async (req, res, next) => {
+  try {
+    let token;
 
-export const checkAuthenticate = async (req,res,next) => {
-        try {
-          let token;
-          let userData;
-      
-          if (
-            req.headers?.authorization &&
-            req.headers?.authorization?.startsWith("Bearer")
-          ) {
-            token = req.headers.authorization.split(" ")[1];
-          }
-      
-          if (!token) {
-            return res.badRequest({ message: "Token is not accessible!!" });
-          }
-      
-          // userInformation
-          const decodedUserAuthData = await verifyAdminToken(token, res);
+    if (
+      req.headers?.authorization &&
+      req.headers?.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+    }
 
-          userData = await Admin.findOne( {
-            _id: mongoose.Types.ObjectId(decodedUserAuthData.id),
-          })
+    if (!token) {
+      return res.status(400).json({ message: "Token is not accessible!!" });
+    }
 
-          if (!userData) {
-            return res.badRequest({ message: "User is not authorized!" });
-          }
+    // Decode and verify token
+    const decodedUserAuthData = await verifyAdminToken(token, res);
 
-          req.admin = userData;
-      
-          next();
-        }
-        catch (error) {
-          next(error);
-        }
-}
+    // Fetch user data
+    const userData = await Admin.findOne({
+      _id: new mongoose.Types.ObjectId(decodedUserAuthData.id),
+    });
+
+    if (!userData) {
+      return res.status(401).json({ message: "User is not authorized!" });
+    }
+
+    req.admin = userData;
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+// export const checkAuthenticate = async (req, res, next) => {
+//   try {
+//     console.log("Middleware triggered for:", req.method, req.originalUrl);
+
+//     let token;
+
+//     if (
+//       req.headers?.authorization &&
+//       req.headers?.authorization.startsWith("Bearer")
+//     ) {
+//       token = req.headers.authorization.split(" ")[1];
+//     }
+
+//     if (!token) {
+//       return res.status(400).json({ message: "Token is not accessible!!" });
+//     }
+
+//     // Verify token and decode user data
+//     const decodedUserAuthData = await verifyAdminToken(token, res);
+
+//     // Fetch user from database
+//     const userData = await Admin.findOne({
+//       _id: new mongoose.Types.ObjectId(decodedUserAuthData.id),
+//     });
+
+//     if (!userData) {
+//       return res.status(401).json({ message: "User is not authorized!" });
+//     }
+
+//     req.admin = userData;
+//     next();
+//   } catch (error) {
+//     console.error("Middleware error:", error);
+//     next(error);
+//   }
+// };
+
 
 
 /**
