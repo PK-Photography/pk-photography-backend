@@ -51,9 +51,7 @@ morgan.token('istDate', (req, res) => {
 // ));
 
 const allowedOrigins = [
-  'http://localhost:3000',
-  'https://www.pkphotography.io',
-  'https://pkphotography.io/'
+  '*'
 ];
 
 app.use(cors({
