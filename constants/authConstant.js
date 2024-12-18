@@ -1,0 +1,58 @@
+export const JWT = {
+  SECRET_KEY: "KINDASOLUTIONSPVTLTDIT",  
+  USER_SECRET: "USERSECRETACCESSKEY",  
+  USER_REFRESH_SECRET: "USERREFRESHSECRETACCESSKEY",  
+  ADMIN_SECRET: "adminUserStricture",
+  EXPIRES_IN: 60,
+  REFRESH_EXPIRES_IN: 70
+};
+
+export const COUNTRY_CODE = {
+  INDIA: "+91",
+  ITALY: "+39",
+  AFGHANISTAN: "+93",  
+  FRANCE: "+33",
+  GERMANY: "+49"
+};
+
+export const USER_TYPES = {
+  User: 1,
+  Admin: 2,
+};
+
+export const PLATFORM = {
+  DEVICE: 1,
+  ADMIN: 2,
+};
+
+export let LOGIN_ACCESS = {
+  [USER_TYPES.User]: [PLATFORM.DEVICE],
+  [USER_TYPES.Admin]: [PLATFORM.ADMIN],
+};
+
+export const MAX_LOGIN_RETRY_LIMIT = 3;
+export const LOGIN_REACTIVE_TIME = 2;
+
+export const SEND_LOGIN_OTP = { SMS: 1 };
+export const DEFAULT_SEND_LOGIN_OTP = SEND_LOGIN_OTP.SMS;
+
+export const FORGOT_PASSWORD_WITH = {
+  LINK: {
+    email: true,
+    sms: false,
+  },
+  EXPIRE_TIME: 60,
+};
+
+export default {
+  JWT,
+  USER_TYPES,
+  PLATFORM,
+  MAX_LOGIN_RETRY_LIMIT,
+  LOGIN_REACTIVE_TIME,
+  SEND_LOGIN_OTP,
+  DEFAULT_SEND_LOGIN_OTP,
+  FORGOT_PASSWORD_WITH,
+  LOGIN_ACCESS,
+  COUNTRY_CODE
+};

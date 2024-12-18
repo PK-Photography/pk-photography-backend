@@ -12,16 +12,16 @@ import {
   updateCategory,
   downloadFile,
   // getCardBySlug,
-} from "../controllers/cardController.js";
+} from "../../controllers/cardController.js";
 
-import { sendOtp, verifyOtp, googleAuth } from "../controllers/authController.js";
+import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
 // import { sendBookingEmail } from "../controllers/bookingController.js";
 import {
   createBooking,
   getAllBookings,
   getBooking,
   deleteBooking,
-} from '../controllers/bookingController.js';
+} from '../../controllers/bookingController.js';
 
 
 const router = express.Router();
@@ -59,17 +59,6 @@ router.get('/download/:fileId', downloadFile);
 
 // router.get('/cards/slug/:slug', getCardBySlug);
 //  ===================|| Booking Routes ||======================
-// router.post("/booking/email", sendBookingEmail);
-router.post('/booking/request', createBooking);
-
-// Get all bookings
-router.get('/booking/all', getAllBookings);
-
-// Get a single booking
-router.get('/booking/:id', getBooking);
-
-// Delete a booking
-router.delete('booking/:id', deleteBooking);
 
 
 
