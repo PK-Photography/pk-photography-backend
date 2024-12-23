@@ -16,13 +16,6 @@ import {
 
 import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
 // import { sendBookingEmail } from "../controllers/bookingController.js";
-import {
-  createBooking,
-  getAllBookings,
-  getBooking,
-  deleteBooking,
-} from '../../controllers/bookingController.js';
-
 
 const router = express.Router();
 

@@ -15,16 +15,16 @@ dotenv.config({
 });
 
 cloudinary.config({
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-    api_key: process.env.CLOUDINARY_API_KEY,
-    api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 })
 const __filename = fileURLToPath(import.meta.url);
 
 
-  // Custom format string with the IST timestamp token
-  const morganFormat = '":method :url HTTP/:http-version" :status :res[content-length] ":referrer"';
-  
+// Custom format string with the IST timestamp token
+const morganFormat = '":method :url HTTP/:http-version" :status :res[content-length] ":referrer"';
+
 
 // Middleware to log HTTP requests using morgan
 app.use(morgan(morganFormat, {
@@ -51,9 +51,11 @@ morgan.token('istDate', (req, res) => {
 // ));
 
 const allowedOrigins = [
+  'http://localhost:3031',
   'http://localhost:3000',
   'https://www.pkphotography.io',
-  'https://pkphotography.io/'
+  'https://pkphotography.io/',
+  'https://pkphotography.io'
 ];
 
 app.use(cors({
@@ -87,4 +89,4 @@ app.get('/', (req, res) => {
 
 connectDB();
 
-export default app;
+export default app;
