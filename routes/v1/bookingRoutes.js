@@ -4,6 +4,7 @@ import {
   getAllBookings,
   getBooking,
   deleteBooking,
+  editBooking,
 } from '../../controllers/bookingController.js';
 import { checkAuthenticate } from "../../middleware/adminAuthenticate.js";
 
@@ -24,7 +25,10 @@ router.get('/booking/all', checkAuthenticate, getAllBookings);
 
 
 // Get a single booking
-router.get('/booking/:id',checkAuthenticate, getBooking);
+router.get('/booking/:id', checkAuthenticate, getBooking);
+
+// edit booking 
+router.put('/booking/:id', checkAuthenticate, editBooking);
 
 // Delete a booking
 router.delete('/booking/:id', checkAuthenticate, deleteBooking);
