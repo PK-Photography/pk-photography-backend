@@ -4,6 +4,10 @@ import clientCard from "../models/clientCardModel.js";
 import axios from "axios";
 // import Card from "../models/clientCardModel.js";
 
+
+
+
+
 const createCard = async (req, res) => {
   const { name, date, imageUrl } = req.body;
 
@@ -25,7 +29,7 @@ const createCard = async (req, res) => {
 
 const uploadCard = async (req, res) => {
   const { name, date, image, category } = req.body;
-  console.log(name, date, image, category);
+  // console.log(name, date, image, category);
 
   try {
     const uploadResponse = await cloudinary.v2.uploader.upload(image, {
@@ -49,6 +53,51 @@ const uploadCard = async (req, res) => {
       .json({ message: "Error uploading image to Cloudinary", error });
   }
 };
+
+
+const updateClintsCard = async (req, res) => {
+  const { id } = req.params; // Card ID from the request parameters
+  const { name, date, image, category } = req.body;
+
+  try {
+    // Find the existing card by ID
+    const existingCard = await Card.findById(id);
+    if (!existingCard) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    let imageUrl = existingCard.imageUrl;
+
+    // If a new image is provided, upload it to Cloudinary
+    if (image) {
+      const uploadResponse = await cloudinary.v2.uploader.upload(image, {
+        folder: "wedding_cards",
+      });
+      imageUrl = uploadResponse.secure_url;
+    }
+
+    // Update the card fields
+    existingCard.name = name || existingCard.name;
+    existingCard.date = date || existingCard.date;
+    existingCard.imageUrl = imageUrl;
+    existingCard.category = category || existingCard.category;
+
+    // Save the updated card
+    await existingCard.save();
+
+    res.status(200).json({ message: "Card updated successfully", existingCard });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ message: "Error updating card", error });
+  }
+};
+
+
+
+
+
 
 const getCards = async (req, res) => {
   try {
@@ -304,5 +353,6 @@ export {
   getCardsByClientId,
   UpdateCardWithDriveLink,
   downloadFile,
+  updateClintsCard,
   // getCardBySlug,
 };

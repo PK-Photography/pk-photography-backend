@@ -15,11 +15,11 @@ const cardSchema = mongoose.Schema(
       required: true,
     },
     category: [
-    {
-      name: { type: String, required: true },       
-      images: { type: String }                    
-    }
-  ]
+      {
+        name: { type: String, required: true },
+        images: { type: String }
+      }
+    ]
   },
   {
     timestamps: true,
