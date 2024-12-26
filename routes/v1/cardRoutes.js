@@ -11,23 +11,19 @@ import {
   deleteCategory,
   updateCategory,
   downloadFile,
+  updateClintsCard,
   // getCardBySlug,
 } from "../../controllers/cardController.js";
 
 import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
 // import { sendBookingEmail } from "../controllers/bookingController.js";
-import {
-  createBooking,
-  getAllBookings,
-  getBooking,
-  deleteBooking,
-} from '../../controllers/bookingController.js';
-
 
 const router = express.Router();
 
 // Route to upload a card
 router.post("/upload", uploadCard);
+router.put("/card/update/:id", updateClintsCard);
+router.post("/card/create", uploadCard);
 
 router.delete('/cards/:id', deleteCard);
 
