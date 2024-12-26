@@ -11,6 +11,7 @@ import {
   deleteCategory,
   updateCategory,
   downloadFile,
+  updateClintsCard,
   // getCardBySlug,
 } from "../../controllers/cardController.js";
 
@@ -21,6 +22,8 @@ const router = express.Router();
 
 // Route to upload a card
 router.post("/upload", uploadCard);
+router.put("/card/update/:id", updateClintsCard);
+router.post("/card/create", uploadCard);
 
 router.delete('/cards/:id', deleteCard);
 
