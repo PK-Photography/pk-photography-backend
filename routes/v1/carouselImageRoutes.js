@@ -1,8 +1,17 @@
 import express from 'express';
-import { v2 as cloudinary } from 'cloudinary';
+import pkg from 'cloudinary';
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
-import { deleteCarouselImage, getCarouselImageById, getCarouselImages, updateCarouselImage, uploadCarouselImage } from './../../controllers/carouselController.js';
+import {
+    deleteCarouselImage,
+    getCarouselImageById,
+    getCarouselImages,
+    updateCarouselImage,
+    uploadCarouselImage,
+} from './../../controllers/carouselController.js';
+
+// Destructure v2 from the default export of cloudinary
+const { v2: cloudinary } = pkg;
 
 // Configure Cloudinary
 cloudinary.config({
