@@ -55,7 +55,8 @@ const allowedOrigins = [
   'http://localhost:3000',
   'https://www.pkphotography.io',
   'https://pkphotography.io/',
-  'https://pkphotography.io'
+  'https://pkphotography.io',
+  'https://pk-admin-panel.netlify.app'
 ];
 
 app.use(cors({
