@@ -42,34 +42,34 @@ morgan.token('istDate', (req, res) => {
 });
 
 
-// app.use(cors(
-//   {
-//     origin: "https://www.pkphotography.io",
-//     credentials: true,
-//     methods: ["GET", "POST", "PUT", "DELETE"],
-//   }
-// ));
+app.use(cors(
+  {
+    origin: '*',
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+  }
+));
 
-const allowedOrigins = [
-  'http://localhost:3031',
-  'http://localhost:3032',
-  'https://www.pkphotography.io',
-  'https://pkphotography.io/',
-  'https://pkphotography.io'
-];
+// const allowedOrigins = [
+//   'http://localhost:3031',
+//   'http://localhost:3032',
+//   'https://www.pkphotography.io',
+//   'https://pkphotography.io/',
+//   'https://pkphotography.io'
+// ];
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin, like mobile apps or curl requests
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true // Allow sending cookies or other credentials
-}));
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     // Allow requests with no origin, like mobile apps or curl requests
+//     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//   credentials: true // Allow sending cookies or other credentials
+// }));
 
 
 app.use(express.json({

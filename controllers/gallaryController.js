@@ -81,13 +81,21 @@ export const updategallary = async (req, res) => {
 
 // READ: Get all gallery images
 export const getgallarys = async (req, res) => {
+    const { category } = req.query; // Extract category from query parameters
+
     try {
-        const images = await gallary.find();
+        // Build the filter object
+        const filter = category && category !== 'All' ? { categories: category } : {};
+
+        // Fetch and sort images based on the filter and sort by creation date (latest first)
+        const images = await gallary.find(filter).sort({ createdAt: -1 });
+
         res.status(200).json({ data: images });
     } catch (error) {
         res.status(500).json({ message: 'Error fetching images', error: error.message });
     }
 };
+
 
 // READ: Get a single gallery image by ID
 export const getgallaryById = async (req, res) => {
