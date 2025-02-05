@@ -1,5 +1,72 @@
+import { JWT } from "../constants/authConstant.js";
 import User from "../models/user.js";
+import { generateToken } from "../services/authServices.js";
 import { sendEmail } from "../services/nodeMailerService.js";
+import bcrypt from 'bcryptjs';
+
+// const UserSignUp = async (req, res) => {
+//   try {
+//     const { fullName, mobileNo, email, password } = req.body;
+
+//     // Custom validations
+//     if (!fullName || !mobileNo || !email || !password) {
+//       return res.status(400).json({ success: false, message: "All fields are required." });
+//     }
+//     if (!/^[a-zA-Z ]{2,50}$/.test(fullName)) {
+//       return res.status(400).json({ success: false, message: "Invalid full name format." });
+//     }
+//     if (!/^\+?[0-9]{10,15}$/.test(mobileNo)) {
+//       return res.status(400).json({ success: false, message: "Invalid mobile number format." });
+//     }
+//     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+//       return res.status(400).json({ success: false, message: "Invalid email format." });
+//     }
+//     if (password.length < 6) {
+//       return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+//     }
+
+//     const lowerCaseEmail = email.toLowerCase();
+
+//     // Check if user already exists
+//     const existingUser = await User.findOne({ email: lowerCaseEmail });
+//     if (existingUser) {
+//       return res.status(400).json({ success: false, message: "User already registered." });
+//     }
+
+//     // Create new user
+//     const newUser = {
+//       fullName,
+//       mobileNo,
+//       email: lowerCaseEmail,
+//       password,
+//     };
+
+//     const createdUser = await User.create(newUser);
+//     if (!createdUser) {
+//       return res.status(500).json({ success: false, message: "User creation failed." });
+//     }
+
+//     // Generate and send OTP
+//     const otp = Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
+//     await User.updateOne({ email: createdUser.email }, { $set: { otp } });
+
+//     const subject = "Account Verification OTP";
+//     const emailData = { name: createdUser.fullName, otp };
+//     await sendEmail(createdUser.email, subject, "otpTemplate", emailData);
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Check your email for the OTP to verify your account.",
+//     });
+//   } catch (error) {
+//     console.error("Error in UserSignUp:", error); // Log the error for debugging
+//     return res.status(500).json({
+//       success: false,
+//       message: "Something went wrong!",
+//       error: error.message,
+//     });
+//   }
+// };
 
 const UserSignUp = async (req, res) => {
   try {
@@ -30,12 +97,12 @@ const UserSignUp = async (req, res) => {
       return res.status(400).json({ success: false, message: "User already registered." });
     }
 
-    // Create new user
+    // Create new user (store plain password directly)
     const newUser = {
       fullName,
       mobileNo,
       email: lowerCaseEmail,
-      password,
+      password, // Store plain password
     };
 
     const createdUser = await User.create(newUser);
@@ -172,72 +239,83 @@ const getUserProfile = async (req, res) => {
  * @param {Object} res : The response object to send back the login status, access token, and refresh token upon successful login.
  * @return {Object} : created User . {status, message, data}
  */
-
 const login = async (req, res) => {
   try {
-    const { error, value } = loginValidation.validate(req.body);
-    if (error) {
-      return res.badRequest({ message: error.details[0].message });
+    const { email, password } = req.body;
+
+    // Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required." });
     }
 
-    const { email, password } = value;
-
-    if (!email) {
-      return res.badRequest({ message: "Please enter email." });
+    // Validate email format
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({ success: false, message: "Invalid email format." });
     }
-   
+
     const lowerCaseEmail = email.toLowerCase();
 
-    // Checking if the User is already registered using the email or mobile number
-    const findData = await dbService.findOne(User, {
-      email: lowerCaseEmail,
-    });
+    // Check if the user exists
+    const findData = await User.findOne({ email: lowerCaseEmail });
+    console.log("User found:", findData); // Log the user data for debugging
 
     if (!findData) {
-      return res.badRequest({ message: "User doesn't exist" });
+      return res.status(400).json({ success: false, message: "User doesn't exist." });
     }
 
+    // Check if the user has verified their email
     if (findData.isverify === false) {
-      return res.badRequest({
-        message: "Please verify email to login your account.",
+      return res.status(400).json({
+        success: false,
+        message: "Please verify your email to login.",
       });
     }
+
+    // Check if the user is banned
     if (findData.isBan === true) {
-      return res.badRequest({
-        message:
-          "You cann't access your account. Your account has been suspended.",
+      return res.status(400).json({
+        success: false,
+        message: "Your account has been suspended.",
       });
     }
 
-    const passwordMatch = await bcrypt.compare(password, findData.password);
-    
-    // If password matches, generate access and refresh tokens
-    if (passwordMatch) {
-      const accessToken = await generateToken(
-        { id: findData._id },
-        JWT.USER_SECRET,
-        "7d"
-      );
-      const refreshToken = await generateToken(
-        { id: findData._id },
-        JWT.USER_REFRESH_SECRET,
-        "30d"
-      );
-
-      const data = {
-        user: findData,
-        accessToken: accessToken,
-        refreshToken: refreshToken,
-      };
-      return res.success({ data: data });
-    } else {
-      return res.badRequest({ message: "Invalid email or password" });
+    // Check if passwords match (plain text)
+    if (findData.password !== password) {
+      return res.status(400).json({ success: false, message: "Invalid email or password." });
     }
+
+    // Generate access and refresh tokens
+    const accessToken = await generateToken(
+      { id: findData._id },
+      JWT.USER_SECRET,
+      "7d"
+    );
+    const refreshToken = await generateToken(
+      { id: findData._id },
+      JWT.USER_REFRESH_SECRET,
+      "30d"
+    );
+
+    const data = {
+      user: findData,
+      accessToken: accessToken,
+      refreshToken: refreshToken,
+    };
+
+    return res.status(200).json({
+      success: true,
+      message: "Login successful.",
+      data: data,
+    });
   } catch (error) {
-    return res.internalServerError({ message: error.message });
+    console.error("Error in login:", error); // Log the error for debugging
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error.message,
+    });
   }
 };
-
 
 
 const updateUserProfile = async (req, res) => {
@@ -290,23 +368,39 @@ const UserForgotPassword = async (req, res) => {
     const { email } = req.body;
     const lowerCaseEmail = email.toLowerCase();
 
-    const findData = await dbService.findOne(User, { email: lowerCaseEmail });
+    // Find the user by email
+    const findData = await User.findOne({ email: lowerCaseEmail });
 
     if (!findData) {
-      return res.recordNotFound({
-        message: "User dosen't exist! Enter right email.",
+      return res.status(404).json({
+        success: false,
+        message: "User doesn't exist! Enter the correct email.",
       });
     }
-    const subject = "Email for reset your password";
-    const otp = common.randomNumber();
-    const data = await User.updateOne({ email: findData.email }, { $set: { otp: otp } });
-    await sendEmail(findData.fullName, subject, findData.email, otp);
-    return res.success({
-      data: data,
-      message: "Please check your email any enter OTP to Reset your password.",
+
+    // Generate OTP (Random 6-digit OTP)
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    // Update OTP for the user
+    await User.updateOne({ email: findData.email }, { $set: { otp: otp } });
+
+    // Send OTP email
+    const subject = "Reset Your Password - OTP Verification";
+    const emailData = { name: findData.fullName, otp };
+
+    await sendEmail(findData.email, subject, "otpTemplate", emailData);
+
+    return res.status(200).json({
+      success: true,
+      message: "Please check your email and enter the OTP to reset your password.",
     });
   } catch (error) {
-    return res.internalServerError({ message: error.message });
+    console.error("Error in forgot password:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error.message,
+    });
   }
 };
 
@@ -321,43 +415,51 @@ const UserResetPassword = async (req, res) => {
     const { email, otp, password } = req.body;
 
     if (otp.length > 6) {
-      return res.badRequest({ message: "OTP is too long!" });
-    }
-
-    // Perform Joi validation
-    const { error } = userValidation.validate({
-      email,
-      password,
-    });
-    if (error) {
-      return res.status(400).json({ message: error.details[0].message });
+      return res.status(400).json({ message: "OTP is too long!" });
     }
 
     const lowerCaseEmail = email.toLowerCase();
 
-    const userData = await dbService.findOne(User, { email: lowerCaseEmail });
+    const userData = await User.findOne({ email: lowerCaseEmail }); // Corrected this line
 
     if (!userData) {
-      return res.recordNotFound({ message: "Something went wrong!" });
-    }
-    if (!userData.otp == otp) {
-      return res.recordNotFound({ message: "Please enter valid OTP" });
+      return res.status(404).json({ message: "User not found!" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 8);
+    // Check if OTP matches
+    if (userData.otp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    // Reset the password without hashing it (direct update)
     await User.findByIdAndUpdate(
       { _id: userData.id },
-      { $set: { password: hashedPassword, otp: "" } },
+      { $set: { password, otp: "" } },
       { new: true }
     );
-    return res.success({
-      message:
-        "Password has been changed. You can login with your new password",
+
+    // You can also generate a JWT token for the user here if needed
+    const accessToken = await generateToken(
+      { id: userData._id },
+      JWT.USER_SECRET,
+      "7d"
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Password has been reset. You can now login with the new password.",
+      accessToken, // Return the JWT token if you want
     });
   } catch (error) {
-    return res.internalServerError({ message: error.message });
+    console.error("Error in resetting password:", error); // Log the error for debugging
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error.message,
+    });
   }
 };
+
 
 
 const updateProfileImage = async (req, res) => {
@@ -402,4 +504,4 @@ const updateProfileImage = async (req, res) => {
   }
 };
 
-export { UserSignUp, UserVerifyEmailOTP };
+export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword };
