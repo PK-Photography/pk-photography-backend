@@ -25,11 +25,24 @@ export const adminSignToken = async(id) =>{
 
 
 
+// export const verifyUserToken = async (token, res) => {
+//   return new Promise((resolve, reject) => {
+//     jwt.verify(token, JWT.USER_SECRET, (err, decoded) => {
+//       if (err) {
+//         res.badRequest({ message: "Token is not accessible!" });
+//         reject(new Error("Token verification failed"));
+//       } else {
+//         resolve(decoded);
+//       }
+//     });
+//   });
+// };
 export const verifyUserToken = async (token, res) => {
   return new Promise((resolve, reject) => {
     jwt.verify(token, JWT.USER_SECRET, (err, decoded) => {
       if (err) {
-        res.badRequest({ message: "Token is not accessible!" });
+        // Use res.status() to set the HTTP status code and res.json() to send a response
+        res.status(400).json({ message: "Token is not accessible!" });
         reject(new Error("Token verification failed"));
       } else {
         resolve(decoded);
@@ -37,18 +50,42 @@ export const verifyUserToken = async (token, res) => {
     });
   });
 };
-export const verifyAdminToken = async (token, res) => {
-  return new Promise((resolve, reject) => {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        res.badRequest({ message: "Token is not accessible!" });
-        reject(new Error("Token verification failed"));
-      } else {
-        resolve(decoded);
-      }
+
+
+
+// export const verifyAdminToken = async (token, res) => {
+
+  export const verifyAdminToken = async (token, res) => {
+    return new Promise((resolve, reject) => {
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          // Same approach here
+          res.status(400).json({ message: "Token is not accessible!" });
+          reject(new Error("Token verification failed"));
+        } else {
+          resolve(decoded);
+        }
+      });
     });
-  });
-};
+  };
+  
+
+
+
+
+
+
+  //   return new Promise((resolve, reject) => {
+//     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+//       if (err) {
+//         res.badRequest({ message: "Token is not accessible!" });
+//         reject(new Error("Token verification failed"));
+//       } else {
+//         resolve(decoded);
+//       }
+//     });
+//   });
+// };
 // const verifyMasterToken = async (token, res) => {
 //   return new Promise((resolve, reject) => {
 //     jwt.verify(token, process.env.JWT_SECRET_MASTER, (err, decoded) => {

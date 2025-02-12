@@ -214,20 +214,33 @@ const UserVerifyEmailOTP = async (req, res) => {
 
 const getUserProfile = async (req, res) => {
   try {
-    // Finding the User record by ID
-    const findData = await dbService.findOne(User, { _id: req.user.id });
+    // Extract userId from the authenticated request (e.g., from middleware)
+    const userId = req.user.id;
 
-    if (!findData) {
-      return res.recordNotFound({ data: findData });
+    // Find the user by their ID
+    const user = await User.findById(userId).select("-password -otp"); // Exclude sensitive fields
+
+    // If user not found
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
     }
 
-    let data = {
-      Users: findData,
-    };
-
-    return res.success({ data: data });
+    // Return the user profile
+    return res.status(200).json({
+      success: true,
+      message: "User profile retrieved successfully.",
+      data: user,
+    });
   } catch (error) {
-    return res.internalServerError({ message: error.message });
+    console.error("Error in getUserProfile:", error); // Log the error for debugging
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error.message,
+    });
   }
 };
 
@@ -462,46 +475,46 @@ const UserResetPassword = async (req, res) => {
 
 
 
-const updateProfileImage = async (req, res) => {
-  try {
-    const userData = await dbService.findOne(User, { _id: req.user.id });
-    if (!userData) {
-      return res.badRequest({ message: "User doesn't exist." });
-    }
+// const updateProfileImage = async (req, res) => {
+//   try {
+//     const userData = await dbService.findOne(User, { _id: req.user.id });
+//     if (!userData) {
+//       return res.badRequest({ message: "User doesn't exist." });
+//     }
 
-    const { fields, files } = await parseForm(req);
+//     const { fields, files } = await parseForm(req);
 
-    const normalizedFields = {};
-    for (const key in fields) {
-      if (fields.hasOwnProperty(key)) {
-        normalizedFields[key] = fields[key][0];
-      }
-    }
+//     const normalizedFields = {};
+//     for (const key in fields) {
+//       if (fields.hasOwnProperty(key)) {
+//         normalizedFields[key] = fields[key][0];
+//       }
+//     }
 
-    if (!files || !files["profileImage"]) {
-      return res.badRequest({ message: "Profile Image is missing" });
-    }
+//     if (!files || !files["profileImage"]) {
+//       return res.badRequest({ message: "Profile Image is missing" });
+//     }
 
-    const uploadedImage = await upload(
-      files["profileImage"],
-      ImageRule.user_profile,
-      userData.profileImage ? userData.profileImage : null
-    );
+//     const uploadedImage = await upload(
+//       files["profileImage"],
+//       ImageRule.user_profile,
+//       userData.profileImage ? userData.profileImage : null
+//     );
 
-    const updatedData = await User.findByIdAndUpdate(
-      { _id: userData.id },
-      { $set: { profileImage: uploadedImage } },
-      { new: true }
-    );
+//     const updatedData = await User.findByIdAndUpdate(
+//       { _id: userData.id },
+//       { $set: { profileImage: uploadedImage } },
+//       { new: true }
+//     );
 
-    if (!updatedData) {
-      return res.recordNotFound({ data: updatedData });
-    }
+//     if (!updatedData) {
+//       return res.recordNotFound({ data: updatedData });
+//     }
 
-    return res.success({ data: updatedData });
-  } catch (error) {
-    return res.internalServerError({ message: error.message });
-  }
-};
+//     return res.success({ data: updatedData });
+//   } catch (error) {
+//     return res.internalServerError({ message: error.message });
+//   }
+// };
 
-export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword };
+export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile };
