@@ -3,6 +3,8 @@ import User from "../models/user.js";
 import { generateToken } from "../services/authServices.js";
 import { sendEmail } from "../services/nodeMailerService.js";
 import bcrypt from 'bcryptjs';
+import passport from "passport";
+import jwt from "jsonwebtoken";
 
 // const UserSignUp = async (req, res) => {
 //   try {
@@ -67,6 +69,55 @@ import bcrypt from 'bcryptjs';
 //     });
 //   }
 // };
+
+
+
+export const googleAuth = passport.authenticate("google", { scope: ["profile", "email"] });
+ const googleAuthController = async (req, res) => {
+  try {
+    const { name, email, image } = req.body;
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({
+        name,
+        email,
+        image,
+      });
+      await user.save();
+    }
+
+    res.status(200).json({ message: "User authenticated successfully", user });
+  } catch (error) {
+    console.error("Google Login Error:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+// Get authenticated user profile
+ const getProfile = async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select("-password");
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+
+    res.json(user);
+  } catch (error) {
+    res.status(401).json({ error: "Invalid Token" });
+  }
+};
+
+
+
+
+
+
+
 
 const UserSignUp = async (req, res) => {
   try {
@@ -517,4 +568,4 @@ const UserResetPassword = async (req, res) => {
 //   }
 // };
 
-export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile };
+export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile,googleAuthController,getProfile };

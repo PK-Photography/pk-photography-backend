@@ -8,11 +8,18 @@ import { fileURLToPath } from 'url';
 import cloudinary from 'cloudinary';
 import morgan from 'morgan';
 import moment from 'moment-timezone';
+import passport from "passport";
+import session from "express-session";
+import "./services/passport.js";
+
+
 const app = express();
 
 dotenv.config({
   path: './.env'
 });
+
+// app.use('./services/passport.js')
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -70,6 +77,18 @@ app.use(cors(
 //   methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //   credentials: true // Allow sending cookies or other credentials
 // }));
+
+
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
 
 
 app.use(express.json({

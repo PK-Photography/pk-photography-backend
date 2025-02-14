@@ -1,5 +1,5 @@
 import express from "express";
-import {getUserProfile, login, UserForgotPassword, UserResetPassword, UserSignUp, UserVerifyEmailOTP} from '../../controllers/userController.js'
+import {getProfile, getUserProfile, googleAuth,  googleAuthController,  login, UserForgotPassword, UserResetPassword, UserSignUp, UserVerifyEmailOTP} from '../../controllers/userController.js'
 import { checkAuthenticate, verifyUser } from "../../middleware/adminAuthenticate.js";
 import { verifyUserToken } from "../../services/authServices.js";
 
@@ -21,7 +21,12 @@ router.post('/user/forgot-password', UserForgotPassword);
 router.get('/user/profile', verifyUser ,getUserProfile);
 
 
+router.get("/google", googleAuth);
 
+
+router.post("/google-login", googleAuthController);
+// Get Profile
+router.get("/profile", getProfile);
 
 
 

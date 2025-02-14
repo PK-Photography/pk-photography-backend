@@ -104,8 +104,10 @@ mongoosePaginate.paginate.options = { customLabels: myCustomLabels };
 const schema = new Schema(
   {
     fullName: { type: String },
+    name: String,
     password: { type: String }, // Keep plain password (no hash)
     mobileNo: { type: String },
+    image: String,
     profileImage: { type: String, default: "" },
     email: { type: String, required: true },
     isverify: { type: Boolean, default: false },
