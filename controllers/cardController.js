@@ -55,9 +55,49 @@ const uploadCard = async (req, res) => {
 };
 
 
+// const updateClintsCard = async (req, res) => {
+//   const { id } = req.params; // Card ID from the request parameters
+//   const { name, date, image, category } = req.body;
+
+//   try {
+//     // Find the existing card by ID
+//     const existingCard = await Card.findById(id);
+//     if (!existingCard) {
+//       return res.status(404).json({ message: "Card not found" });
+//     }
+
+//     let imageUrl = existingCard.imageUrl;
+
+//     // If a new image is provided, upload it to Cloudinary
+//     if (image) {
+//       const uploadResponse = await cloudinary.v2.uploader.upload(image, {
+//         folder: "wedding_cards",
+//       });
+//       imageUrl = uploadResponse.secure_url;
+//     }
+
+//     // Update the card fields
+//     existingCard.name = name || existingCard.name;
+//     existingCard.date = date || existingCard.date;
+//     existingCard.imageUrl = imageUrl;
+//     existingCard.category = category || existingCard.category;
+
+//     // Save the updated card
+//     await existingCard.save();
+
+//     res.status(200).json({ message: "Card updated successfully", existingCard });
+//   } catch (error) {
+//     console.error(error);
+//     res
+//       .status(500)
+//       .json({ message: "Error updating card", error });
+//   }
+// };
+
+
 const updateClintsCard = async (req, res) => {
-  const { id } = req.params; // Card ID from the request parameters
-  const { name, date, image, category } = req.body;
+  const { id } = req.params; // Card ID from request params
+  const { name, date, image, category, canDownload, canView } = req.body;
 
   try {
     // Find the existing card by ID
@@ -81,19 +121,18 @@ const updateClintsCard = async (req, res) => {
     existingCard.date = date || existingCard.date;
     existingCard.imageUrl = imageUrl;
     existingCard.category = category || existingCard.category;
+    existingCard.canDownload = canDownload !== undefined ? canDownload : existingCard.canDownload;
+    existingCard.canView = canView !== undefined ? canView : existingCard.canView;
 
     // Save the updated card
     await existingCard.save();
 
-    res.status(200).json({ message: "Card updated successfully", existingCard });
+    res.status(200).json({ message: "Card updated successfully", card: existingCard });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Error updating card", error });
+    console.error("Error updating card:", error);
+    res.status(500).json({ message: "Error updating card", error: error.message });
   }
 };
-
 
 
 
