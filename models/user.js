@@ -27,9 +27,9 @@
 //     fullName: { type: String },
 //     password: { type: String },
 //     mobileNo: { type: String },
-   
+
 //     profileImage: { type: String, default: "" },
-    
+
 //     email: { type: String, required: true },
 //     isverify: { type: Boolean, default: false },
 //     isBan: { type: Boolean, default: false },
@@ -80,7 +80,6 @@
 
 // const User = mongoose.model("User", schema);
 // export default User;
-
 import mongoose from "mongoose";
 import mongoosePaginate from "mongoose-paginate-v2";
 import idValidator from "mongoose-id-validator";
@@ -115,6 +114,11 @@ const schema = new Schema(
     banReason: { type: String, default: "" },
     otp: { type: String, default: "" },
     isActive: { type: Boolean },
+    role: {
+      type: String,
+      enum: ["Viewer", "Writer", "Client", "Subscriber"],
+      default: "Viewer",
+    },
   },
   {
     timestamps: {

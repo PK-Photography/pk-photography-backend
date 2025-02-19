@@ -73,7 +73,7 @@ import jwt from "jsonwebtoken";
 
 
 export const googleAuth = passport.authenticate("google", { scope: ["profile", "email"] });
- const googleAuthController = async (req, res) => {
+const googleAuthController = async (req, res) => {
   try {
     const { name, email, image } = req.body;
 
@@ -96,7 +96,7 @@ export const googleAuth = passport.authenticate("google", { scope: ["profile", "
   }
 };
 // Get authenticated user profile
- const getProfile = async (req, res) => {
+const getProfile = async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) return res.status(401).json({ error: "Unauthorized" });
 
@@ -114,7 +114,31 @@ export const googleAuth = passport.authenticate("google", { scope: ["profile", "
 
 
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find();
+    res.status(200).json(users);
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+};
 
+const updateUserRole = async (req, res) => {
+  try {
+    const { userId, role } = req.body;
+    if (!["Viewer", "Writer", "Client", "Subscriber"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { role },
+      { new: true }
+    );
+    res.status(200).json(updatedUser);
+  } catch (error) {
+    res.status(500).json({ message: "Error updating user role", error });
+  }
+};
 
 
 
@@ -185,74 +209,74 @@ const UserSignUp = async (req, res) => {
 
 
 const UserVerifyEmailOTP = async (req, res) => {
-    try {
-      const { email, otp } = req.body;
-  
-      // Custom validations
-      if (!email || !otp) {
-        return res.status(400).json({
-          success: false,
-          message: "Email and OTP are required.",
-        });
-      }
-      if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid email format.",
-        });
-      }
-      if (!/^\d{6}$/.test(otp)) {
-        return res.status(400).json({
-          success: false,
-          message: "OTP must be a 6-digit number.",
-        });
-      }
-  
-      const lowerCaseEmail = email.toLowerCase();
-  
-      // Find the user by email
-      const userData = await User.findOne({ email: lowerCaseEmail });
-  
-      if (!userData) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found. Please provide a valid email.",
-        });
-      }
-  
-      if (userData.isverify) {
-        return res.status(400).json({
-          success: false,
-          message: "Account is already verified. You can log in.",
-        });
-      }
-  
-      if (userData.otp !== otp) {
-        return res.status(400).json({
-          success: false,
-          message: "Invalid OTP. Please try again.",
-        });
-      }
-  
-      // Update the user's verification status
-      userData.isverify = true;
-      userData.otp = ""; // Clear OTP after successful verification
-      await userData.save();
-  
-      return res.status(200).json({
-        success: true,
-        message: "Your account has been successfully verified.",
-      });
-    } catch (error) {
-      console.error("Error in UserVerifyEmailOTP:", error);
-      return res.status(500).json({
+  try {
+    const { email, otp } = req.body;
+
+    // Custom validations
+    if (!email || !otp) {
+      return res.status(400).json({
         success: false,
-        message: "Something went wrong!",
-        error: error.message,
+        message: "Email and OTP are required.",
       });
     }
-  };
-  
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid email format.",
+      });
+    }
+    if (!/^\d{6}$/.test(otp)) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP must be a 6-digit number.",
+      });
+    }
+
+    const lowerCaseEmail = email.toLowerCase();
+
+    // Find the user by email
+    const userData = await User.findOne({ email: lowerCaseEmail });
+
+    if (!userData) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found. Please provide a valid email.",
+      });
+    }
+
+    if (userData.isverify) {
+      return res.status(400).json({
+        success: false,
+        message: "Account is already verified. You can log in.",
+      });
+    }
+
+    if (userData.otp !== otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP. Please try again.",
+      });
+    }
+
+    // Update the user's verification status
+    userData.isverify = true;
+    userData.otp = ""; // Clear OTP after successful verification
+    await userData.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Your account has been successfully verified.",
+    });
+  } catch (error) {
+    console.error("Error in UserVerifyEmailOTP:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong!",
+      error: error.message,
+    });
+  }
+};
+
 
 
 /**
@@ -384,7 +408,7 @@ const login = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
   try {
-    
+
     const { fullName, mobileNo, dob, education, occupation } = req.body;
 
     const dataToUpdate = {
@@ -568,4 +592,4 @@ const UserResetPassword = async (req, res) => {
 //   }
 // };
 
-export { UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile,googleAuthController,getProfile };
+export { updateUserRole, getAllUsers, UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile, googleAuthController, getProfile };
