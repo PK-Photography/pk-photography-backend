@@ -45,7 +45,8 @@ export const fetchImagesFromNAS = async (req, res) => {
         console.log("🔹 Step 2: Fetching images from NAS...");
 
         const folderPath = req.query.nasUrl || "/photo"; // Default folder
-        const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&session=FileStation&_sid=${sessionId}`;
+        // const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&session=FileStation&_sid=${sessionId}`;
+        const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&additional=file_size,real_path&sort_by=name&sort_direction=asc&_sid=${sessionId}`;
 
         console.log("🔹 NAS List API URL:", listUrl);
 
@@ -64,108 +65,36 @@ export const fetchImagesFromNAS = async (req, res) => {
         }
 
         // **🔹 Step 3: Process images for different resolutions**
-        const images = listResponse.data.data.files
+        const files = listResponse.data.data.files
             .filter(file => file.name.match(/\.(jpg|jpeg|png)$/i)) // Only image files
             .map(file => {
-                const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
+                const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=medium&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
                 
                 return {
                     name: file.name,
-                    lowRes: `/api/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=low`,  // Small thumbnail
-                    mediumRes: `/api/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`, // Medium resolution
-                    highRes: `/api/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=high`, // Full resolution
+                    lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,  // Small thumbnail
+                    mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`, // Medium resolution
+                    highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`, // Full resolution
                     path: file.path,
                     shareableLink: baseUrl // Direct link to download
                 };
             });
 
-        console.log(`✅ Found ${images.length} images! Sending response...`);
+        // console.log(`✅ Found ${images.length} images! Sending response...`);
+
+        const sortedImages = files.sort((a, b) => a.name.localeCompare(b.name));
 
         // ✅ Add CORS Headers to Allow Frontend Requests
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-        res.status(200).json({ images });
+        res.status(200).json({ images: sortedImages });
     } catch (error) {
         console.error("❌ Error fetching NAS images:", error.message);
         res.status(500).json({ message: "Failed to fetch NAS images", error: error.message });
     }
 };
-
-
-
-// export const fetchImagesFromNAS = async (req, res) => {
-//     try {
-//         console.log("🔹 Step 1: Checking NAS authentication...");
-//         if (!sessionId) {
-//             console.log("🔹 No active session. Authenticating with NAS...");
-//             await authenticateWithNAS();
-//         } else {
-//             console.log("✅ Already authenticated with NAS. Session ID:", sessionId);
-//         }
-
-//         console.log("🔹 Step 2: Fetching images from NAS...");
-
-//         const folderPath = req.query.nasUrl || "/photo"; 
-//         console.log(`🔹 Target Folder Path: ${folderPath}`);
-
-//         const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&session=FileStation&_sid=${sessionId}`;
-//         console.log(`🔹 NAS List API URL: ${listUrl}`);
-
-//         const listResponse = await axios.get(listUrl, {
-//             headers: {
-//                 "User-Agent": "Mozilla/5.0",
-//                 "Referer": NAS_URL,
-//                 "Origin": NAS_URL
-//             }
-//         });
-
-//         console.log("🔹 Step 3: Processing NAS API Response...");
-//         console.log("🔹 Full Response from NAS API:", JSON.stringify(listResponse.data, null, 2));
-
-//         if (!listResponse.data.success) {
-//             console.error("❌ NAS API Response indicates failure!");
-//             throw new Error("❌ Failed to list images from NAS!");
-//         }
-
-//         if (!listResponse.data.data || !listResponse.data.data.files) {
-//             console.error("❌ No files found in NAS response!");
-//             throw new Error("❌ No images found in NAS directory!");
-//         }
-
-//         console.log(`✅ NAS API returned ${listResponse.data.data.files.length} files.`);
-
-//         const images = listResponse.data.data.files
-//             .filter(file => {
-//                 const isImage = file.name.match(/\.(jpg|jpeg|png|JPG)$/i);
-//                 console.log(`🔍 Checking file: ${file.name} - ${isImage ? "✅ Image detected" : "❌ Not an image"}`);
-//                 return isImage;
-//             })
-//             .map(file => {
-//                 const thumbnailUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
-                
-//                 console.log(`📸 Processed Image: ${file.name}`);
-//                 console.log(`   🔹 LowRes Thumbnail: ${thumbnailUrl}`);
-//                 console.log(`   🔹 HighRes Download Path: /api/nas-download?path=${encodeURIComponent(file.path)}`);
-
-//                 return {
-//                     id: file.name,
-//                     lowRes: thumbnailUrl, // ✅ Display a lightweight thumbnail
-//                     highRes: `/api/nas-download?path=${encodeURIComponent(file.path)}`, // ✅ High-Resolution download
-//                     path: file.path,
-//                 };
-//             });
-
-//         console.log(`✅ Successfully processed ${images.length} images.`);
-//         console.log("🔹 Sending JSON response to client...");
-
-//         res.status(200).json({ images });
-//     } catch (error) {
-//         console.error("❌ Error fetching NAS images:", error.message);
-//         res.status(500).json({ message: "Failed to fetch NAS images", error: error.message });
-//     }
-// };
 
 // **🔹 Step 4: Proxy Image Requests (Stream Image Instead of Redirecting)**
 export const serveNASImage = async (req, res) => {
@@ -183,7 +112,7 @@ export const serveNASImage = async (req, res) => {
         // Correctly encode path as JSON array for NAS API
         const encodedPath = JSON.stringify([decodeURIComponent(path)]);  
 
-        const imageUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(encodedPath)}&mode=open&_sid=${sessionId}`;
+        const imageUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(encodedPath)}&size=medium&mode=open&_sid=${sessionId}`;
 
         console.log("✅ Fetching Image from:", imageUrl);
 
@@ -195,6 +124,8 @@ export const serveNASImage = async (req, res) => {
                 "Origin": NAS_URL
             }
         });
+
+        console.log("✅ Got the Image from:", imageUrl);
 
         res.setHeader("Content-Type", "image/jpeg"); 
         imageResponse.data.pipe(res);
