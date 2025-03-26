@@ -18,6 +18,8 @@ import {
 import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
 // import { sendBookingEmail } from "../controllers/bookingController.js";
 
+import { fetchImagesFromNAS, serveNASImage, downloadNASImage } from "../../controllers/nasController.js";
+
 const router = express.Router();
 
 // Route to upload a card
@@ -31,6 +33,10 @@ router.delete('/cards/delete-category', deleteCategory);
 
 // Route to get all cards
 router.get("/cards", getCards);
+
+router.get("/nas-images", fetchImagesFromNAS);
+router.get("/nas-image-proxy", serveNASImage);
+router.get("/nas-download", downloadNASImage);
 
 // Route to create a new card
 router.post("/cards", createCard);
