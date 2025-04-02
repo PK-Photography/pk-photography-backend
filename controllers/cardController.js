@@ -4,10 +4,6 @@ import clientCard from "../models/clientCardModel.js";
 import axios from "axios";
 // import Card from "../models/clientCardModel.js";
 
-
-
-
-
 const createCard = async (req, res) => {
   const { name, date, imageUrl } = req.body;
 
