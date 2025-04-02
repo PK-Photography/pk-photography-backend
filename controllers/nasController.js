@@ -40,58 +40,62 @@ const authenticateWithNAS = async () => {
 // **🔹 Step 2: Fetch Images from NAS Folder**
 export const fetchImagesFromNAS = async (req, res) => {
     try {
+        const offset = parseInt(req.query.offset) || 0;
+        const limit = parseInt(req.query.limit) || 20;
+
         if (!sessionId) await authenticateWithNAS(); // Ensure authentication
 
         console.log("Step 2: Fetching images from NAS...");
 
-        const folderPath = req.query.nasUrl || "/photo"; // Default folder
-        // const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&session=FileStation&_sid=${sessionId}`;
+        const folderPath = req.query.nasUrl || "/photo";
         const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&additional=file_size,real_path&sort_by=name&sort_direction=asc&_sid=${sessionId}`;
 
         console.log("🔹 NAS List API URL:", listUrl);
 
         const listResponse = await axios.get(listUrl, {
             headers: {
-                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+                "User-Agent": "Mozilla/5.0",
                 "Referer": NAS_URL,
                 "Origin": NAS_URL
             }
         });
 
-        console.log("🔹 NAS List Response:", JSON.stringify(listResponse.data, null, 2));
-
         if (!listResponse.data.success) {
             throw new Error("Failed to list images from NAS!");
         }
 
-        // **🔹 Step 3: Process images for different resolutions**
         const files = listResponse.data.data.files
             .filter(file => file.name.match(/\.(jpg|jpeg|png)$/i)) // Only image files
             .map(file => {
                 const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=medium&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
-                
                 return {
                     name: file.name,
-                    lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,  // Small thumbnail
-                    mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`, // Medium resolution
-                    highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`, // Full resolution
+                    lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                    mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                    highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
                     path: file.path,
-                    shareableLink: baseUrl // Direct link to download
+                    shareableLink: baseUrl
                 };
             });
 
-        // console.log(`Found ${images.length} images! Sending response...`);
-
+        // Sort alphabetically
         const sortedImages = files.sort((a, b) =>
             a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
         );
 
-        // Add CORS Headers to Allow Frontend Requests
+        const total = sortedImages.length;
+        const paginated = sortedImages.slice(offset, offset + limit);
+
+        // CORS headers
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
         res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-        res.status(200).json({ images: sortedImages });
+        res.status(200).json({
+            images: paginated,
+            total,
+            hasMore: offset + limit < total
+        });
     } catch (error) {
         console.error("Error fetching NAS images:", error.message);
         res.status(500).json({ message: "Failed to fetch NAS images", error: error.message });
