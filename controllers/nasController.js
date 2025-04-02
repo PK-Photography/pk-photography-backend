@@ -82,7 +82,9 @@ export const fetchImagesFromNAS = async (req, res) => {
 
         // console.log(`Found ${images.length} images! Sending response...`);
 
-        const sortedImages = files.sort((a, b) => a.name.localeCompare(b.name));
+        const sortedImages = files.sort((a, b) =>
+            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
+        );
 
         // Add CORS Headers to Allow Frontend Requests
         res.setHeader("Access-Control-Allow-Origin", "*");
