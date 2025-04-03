@@ -1,4 +1,6 @@
 import axios from "axios";
+import sharp from "sharp";
+import stream from "stream";
 
 // Synology NAS API Details
 const NAS_URL = "https://pkphotography.sg4.quickconnect.to";
@@ -105,41 +107,39 @@ export const fetchImagesFromNAS = async (req, res) => {
 // **🔹 Step 4: Proxy Image Requests (Stream Image Instead of Redirecting)**
 export const serveNASImage = async (req, res) => {
     try {
-        let { path } = req.query; 
-
-        if (!path) {
-            return res.status(400).json({ message: "Image path is required" });
-        }
-
-        console.log("🔹 Fetching image from NAS:", path);
-
-        if (!sessionId) await authenticateWithNAS();
-
-        // Correctly encode path as JSON array for NAS API
-        const encodedPath = JSON.stringify([decodeURIComponent(path)]);  
-
-        const imageUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(encodedPath)}&size=medium&mode=open&_sid=${sessionId}`;
-
-        console.log("Fetching Image from:", imageUrl);
-
-        const imageResponse = await axios.get(imageUrl, {
-            responseType: "stream", 
-            headers: {
-                "User-Agent": "Mozilla/5.0",
-                "Referer": NAS_URL,
-                "Origin": NAS_URL
-            }
-        });
-
-        console.log("Got the Image from:", imageUrl);
-
-        res.setHeader("Content-Type", "image/jpeg"); 
-        imageResponse.data.pipe(res);
+      let { path, size = "medium" } = req.query;
+  
+      if (!path) {
+        return res.status(400).json({ message: "Image path is required" });
+      }
+  
+      if (!sessionId) await authenticateWithNAS();
+  
+      const encodedPath = JSON.stringify([decodeURIComponent(path)]);
+  
+      const imageUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(
+        encodedPath
+      )}&size=${size}&mode=open&_sid=${sessionId}`;
+  
+      const imageResponse = await axios.get(imageUrl, {
+        responseType: "stream",
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          "Referer": NAS_URL,
+          "Origin": NAS_URL,
+        },
+      });
+  
+      res.setHeader("Content-Type", "image/webp");
+  
+      // Pipe original stream → convert to .webp using sharp → pipe to client
+      const transform = sharp().webp({ quality: 80 });
+      imageResponse.data.pipe(transform).pipe(res);
     } catch (error) {
-        console.error("Error serving NAS image:", error.message);
-        res.status(500).json({ message: "Failed to serve NAS image", error: error.message });
+      console.error("Error serving NAS image as webp:", error.message);
+      res.status(500).json({ message: "Failed to serve NAS image", error: error.message });
     }
-};
+  };
 
 export const downloadNASImage = async (req, res) => {
     try {
