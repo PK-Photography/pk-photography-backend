@@ -141,7 +141,7 @@ export const serveNASImage = async (req, res) => {
       console.log("✅ Detected type:", type.mime);
   
       // Supported input types for sharp conversion
-      const sharpSupportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff'];
+      const sharpSupportedTypes = ['image/png', 'image/webp', 'image/tiff'];
   
       if (sharpSupportedTypes.includes(type.mime)) {
         const webpBuffer = await sharp(imageBuffer).webp({ quality: 85 }).toBuffer();
