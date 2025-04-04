@@ -5,6 +5,7 @@ const NAS_URL = "https://pkphotography.sg4.quickconnect.to";
 const API_USER = "toshita";
 const API_PASS = "4?voAWnZ";
 let sessionId; // Store session ID globally to avoid multiple logins
+import sharp from "sharp";
 
 // **🔹 Step 1: Authenticate with Synology NAS**
 const authenticateWithNAS = async () => {
@@ -43,14 +44,10 @@ export const fetchImagesFromNAS = async (req, res) => {
         const offset = parseInt(req.query.offset) || 0;
         const limit = parseInt(req.query.limit) || 20;
 
-        if (!sessionId) await authenticateWithNAS(); // Ensure authentication
-
-        console.log("Step 2: Fetching images from NAS...");
+        if (!sessionId) await authenticateWithNAS();
 
         const folderPath = req.query.nasUrl || "/photo";
         const listUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.List&version=2&method=list&folder_path=${encodeURIComponent(folderPath)}&additional=file_size,real_path&sort_by=name&sort_direction=asc&_sid=${sessionId}`;
-
-        console.log("🔹 NAS List API URL:", listUrl);
 
         const listResponse = await axios.get(listUrl, {
             headers: {
@@ -65,37 +62,23 @@ export const fetchImagesFromNAS = async (req, res) => {
         }
 
         const files = listResponse.data.data.files
-            .filter(file => file.name.match(/\.(jpg|jpeg|png)$/i)) // Only image files
-            .map(file => {
-                const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=medium&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
-                return {
-                    name: file.name,
-                    lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
-                    mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
-                    highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
-                    path: file.path,
-                    shareableLink: baseUrl
-                };
-            });
+            .filter(file => file.name.match(/\.(jpg|jpeg|png)$/i))
+            .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
-        // Sort alphabetically
-        const sortedImages = files.sort((a, b) =>
-            a.name.localeCompare(b.name, undefined, { sensitivity: 'base' })
-        );
-
-        const total = sortedImages.length;
-        const paginated = sortedImages.slice(offset, offset + limit);
-
-        // CORS headers
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-        res.status(200).json({
-            images: paginated,
-            total,
-            hasMore: offset + limit < total
+        const paginated = files.slice(offset, offset + limit).map(file => {
+            const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=medium&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
+            return {
+                name: file.name,
+                lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                path: file.path,
+                shareableLink: baseUrl
+            };
         });
+
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.status(200).json({ images: paginated, total: files.length });
     } catch (error) {
         console.error("Error fetching NAS images:", error.message);
         res.status(500).json({ message: "Failed to fetch NAS images", error: error.message });
@@ -103,43 +86,80 @@ export const fetchImagesFromNAS = async (req, res) => {
 };
 
 // **🔹 Step 4: Proxy Image Requests (Stream Image Instead of Redirecting)**
+const { fileTypeFromBuffer } = await import('file-type');
+
 export const serveNASImage = async (req, res) => {
     try {
-        let { path } = req.query; 
-
-        if (!path) {
-            return res.status(400).json({ message: "Image path is required" });
-        }
-
-        console.log("🔹 Fetching image from NAS:", path);
-
-        if (!sessionId) await authenticateWithNAS();
-
-        // Correctly encode path as JSON array for NAS API
-        const encodedPath = JSON.stringify([decodeURIComponent(path)]);  
-
-        const imageUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(encodedPath)}&size=medium&mode=open&_sid=${sessionId}`;
-
-        console.log("Fetching Image from:", imageUrl);
-
-        const imageResponse = await axios.get(imageUrl, {
-            responseType: "stream", 
-            headers: {
-                "User-Agent": "Mozilla/5.0",
-                "Referer": NAS_URL,
-                "Origin": NAS_URL
-            }
+      let { path, size = "medium" } = req.query;
+  
+      if (!path) {
+        return res.status(400).json({ message: "Image path is required" });
+      }
+  
+      if (!sessionId) await authenticateWithNAS();
+  
+      const encodedPath = JSON.stringify([decodeURIComponent(path)]);
+      const thumbUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Thumb&version=2&method=get&path=${encodeURIComponent(encodedPath)}&size=${size}&mode=open&_sid=${sessionId}`;
+      const downloadUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&path=${encodeURIComponent(encodedPath)}&_sid=${sessionId}`;
+  
+      let imageBuffer;
+  
+      try {
+        const thumbResponse = await axios.get(thumbUrl, {
+          responseType: "arraybuffer",
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Referer": NAS_URL,
+            "Origin": NAS_URL,
+          },
         });
-
-        console.log("Got the Image from:", imageUrl);
-
-        res.setHeader("Content-Type", "image/jpeg"); 
-        imageResponse.data.pipe(res);
+  
+        imageBuffer = thumbResponse.data;
+      } catch (thumbErr) {
+        console.warn("⚠️ Thumbnail failed, trying original download:", thumbErr.message);
+  
+        const fallbackResponse = await axios.get(downloadUrl, {
+          responseType: "arraybuffer",
+          headers: {
+            "User-Agent": "Mozilla/5.0",
+            "Referer": NAS_URL,
+            "Origin": NAS_URL,
+          },
+        });
+  
+        imageBuffer = fallbackResponse.data;
+      }
+  
+      const { fileTypeFromBuffer } = await import('file-type');
+      const type = await fileTypeFromBuffer(imageBuffer);
+  
+      if (!type || !type.mime.startsWith("image/")) {
+        console.error("❌ Invalid image format. File type detected:", type?.mime);
+        return res.status(400).json({ message: "Unsupported image format", type: type?.mime });
+      }
+  
+      console.log("✅ Detected type:", type.mime);
+  
+      // Supported input types for sharp conversion
+      const sharpSupportedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/tiff'];
+  
+      if (sharpSupportedTypes.includes(type.mime)) {
+        const webpBuffer = await sharp(imageBuffer).webp({ quality: 85 }).toBuffer();
+  
+        res.setHeader("Content-Type", "image/webp");
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        return res.status(200).send(webpBuffer);
+      } else {
+        // Serve original if format is not supported by sharp
+        res.setHeader("Content-Type", type.mime);
+        res.setHeader("Cache-Control", "public, max-age=86400");
+        return res.status(200).send(imageBuffer);
+      }
     } catch (error) {
-        console.error("Error serving NAS image:", error.message);
-        res.status(500).json({ message: "Failed to serve NAS image", error: error.message });
+      console.error("❌ Error serving NAS image:", error.message);
+      res.status(500).json({ message: "Failed to serve NAS image", error: error.message });
     }
-};
+  };
 
 export const downloadNASImage = async (req, res) => {
     try {
