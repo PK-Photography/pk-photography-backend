@@ -35,7 +35,7 @@ router.delete('/cards/delete-category', deleteCategory);
 router.get("/cards", getCards);
 
 router.get("/nas-images", fetchImagesFromNAS);
-router.get("/nas-image-proxy", serveNASImage);
+router.get("/pk-photography-images", serveNASImage);
 router.get("/nas-download", downloadNASImage);
 
 // Route to create a new card

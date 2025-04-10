@@ -66,12 +66,12 @@ export const fetchImagesFromNAS = async (req, res) => {
             .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
         const paginated = files.slice(offset, offset + limit).map(file => {
-            const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=medium&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
+            const baseUrl = `${NAS_URL}/webapi/entry.cgi?api=SYNO.FileStation.Download&version=2&method=download&size=large&path=${encodeURIComponent(file.path)}&_sid=${sessionId}`;
             return {
                 name: file.name,
-                lowRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
-                mediumRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
-                highRes: `/nas-image-proxy?path=${encodeURIComponent(file.path)}&size=medium`,
+                lowRes: `/pk-photography-images?path=${encodeURIComponent(file.path)}&size=large`,
+                mediumRes: `/pk-photography-images?path=${encodeURIComponent(file.path)}&size=large`,
+                highRes: `/pk-photography-images?path=${encodeURIComponent(file.path)}&size=large`,
                 path: file.path,
                 shareableLink: baseUrl
             };
@@ -90,7 +90,7 @@ const { fileTypeFromBuffer } = await import('file-type');
 
 export const serveNASImage = async (req, res) => {
     try {
-      let { path, size = "medium" } = req.query;
+      let { path, size = "original" } = req.query;
   
       if (!path) {
         return res.status(400).json({ message: "Image path is required" });
@@ -113,6 +113,8 @@ export const serveNASImage = async (req, res) => {
             "Origin": NAS_URL,
           },
         });
+
+        console.log(thumbUrl);
   
         imageBuffer = thumbResponse.data;
       } catch (thumbErr) {
