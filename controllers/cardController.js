@@ -11,7 +11,8 @@ const createCard = async (req, res) => {
       name,
       date,
       imageUrl,
-      pin
+      pin,
+      url
     });
 
     await newCard.save();
@@ -24,7 +25,7 @@ const createCard = async (req, res) => {
 };
 
 const uploadCard = async (req, res) => {
-  const { name, date, image, category, pin = false } = req.body;
+  const { name, date, image, category, pin, url } = req.body;
 
   try {
     const uploadResponse = await cloudinary.v2.uploader.upload(image, {
@@ -37,6 +38,7 @@ const uploadCard = async (req, res) => {
       imageUrl: uploadResponse.secure_url,
       category,
       pin,
+      url
     });
 
     await newCard.save();
@@ -49,7 +51,7 @@ const uploadCard = async (req, res) => {
 
 const updateClintsCard = async (req, res) => {
   const { id } = req.params; // Card ID from request params
-  const { name, date, image, category, canDownload, canView, pin } = req.body;
+  const { name, date, image, category, canDownload, canView, pin, url } = req.body;
 
   try {
     // Find the existing card by ID
@@ -76,6 +78,7 @@ const updateClintsCard = async (req, res) => {
     existingCard.canDownload = canDownload !== undefined ? canDownload : existingCard.canDownload;
     existingCard.canView = canView !== undefined ? canView : existingCard.canView;
     existingCard.pin = pin || existingCard.pin;
+    existingCard.url = url || existingCard.url;
 
     // Save the updated card
     await existingCard.save();
@@ -139,7 +142,8 @@ const uploadCardByCategory = async (req, res) => {
       date,
       image: uploadResponse.secure_url,
       category,
-      pin
+      pin,
+      url
     });
 
     await newCard.save();
@@ -175,7 +179,8 @@ const uploadCardWithDriveLink = async (req, res) => {
       clientId,
       imageUrl: driveLink,
       category,
-      pin
+      pin,
+      url
     });
 
     res.status(201).json(news);

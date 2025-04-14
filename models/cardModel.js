@@ -31,6 +31,10 @@ const cardSchema = mongoose.Schema(
     pin: {
       type: String,
       default: null,
+    },
+    url: {
+      type: String,
+      default: null,
     }
   },
   {

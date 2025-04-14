@@ -22,6 +22,10 @@ const cardSchema = new mongoose.Schema(
     pin: {
       type: String,
       default: false,
+    },
+    url: {
+      type: String,
+      default: false,
     }
   },
   { timestamps: true }
