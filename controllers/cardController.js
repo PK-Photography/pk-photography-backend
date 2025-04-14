@@ -2,11 +2,6 @@ import Card from "../models/cardModel.js";
 import cloudinary from "cloudinary";
 import clientCard from "../models/clientCardModel.js";
 import axios from "axios";
-// import Card from "../models/clientCardModel.js";
-
-
-
-
 
 const createCard = async (req, res) => {
   const { name, date, imageUrl } = req.body;
@@ -16,6 +11,7 @@ const createCard = async (req, res) => {
       name,
       date,
       imageUrl,
+      pin
     });
 
     await newCard.save();
@@ -28,8 +24,7 @@ const createCard = async (req, res) => {
 };
 
 const uploadCard = async (req, res) => {
-  const { name, date, image, category } = req.body;
-  // console.log(name, date, image, category);
+  const { name, date, image, category, pin = false } = req.body;
 
   try {
     const uploadResponse = await cloudinary.v2.uploader.upload(image, {
@@ -41,63 +36,20 @@ const uploadCard = async (req, res) => {
       date,
       imageUrl: uploadResponse.secure_url,
       category,
+      pin,
     });
 
     await newCard.save();
 
     res.status(201).json({ message: "Card uploaded successfully", newCard });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Error uploading image to Cloudinary", error });
+    res.status(500).json({ message: "Error uploading image", error });
   }
 };
 
-
-// const updateClintsCard = async (req, res) => {
-//   const { id } = req.params; // Card ID from the request parameters
-//   const { name, date, image, category } = req.body;
-
-//   try {
-//     // Find the existing card by ID
-//     const existingCard = await Card.findById(id);
-//     if (!existingCard) {
-//       return res.status(404).json({ message: "Card not found" });
-//     }
-
-//     let imageUrl = existingCard.imageUrl;
-
-//     // If a new image is provided, upload it to Cloudinary
-//     if (image) {
-//       const uploadResponse = await cloudinary.v2.uploader.upload(image, {
-//         folder: "wedding_cards",
-//       });
-//       imageUrl = uploadResponse.secure_url;
-//     }
-
-//     // Update the card fields
-//     existingCard.name = name || existingCard.name;
-//     existingCard.date = date || existingCard.date;
-//     existingCard.imageUrl = imageUrl;
-//     existingCard.category = category || existingCard.category;
-
-//     // Save the updated card
-//     await existingCard.save();
-
-//     res.status(200).json({ message: "Card updated successfully", existingCard });
-//   } catch (error) {
-//     console.error(error);
-//     res
-//       .status(500)
-//       .json({ message: "Error updating card", error });
-//   }
-// };
-
-
 const updateClintsCard = async (req, res) => {
   const { id } = req.params; // Card ID from request params
-  const { name, date, image, category, canDownload, canView } = req.body;
+  const { name, date, image, category, canDownload, canView, pin } = req.body;
 
   try {
     // Find the existing card by ID
@@ -123,6 +75,7 @@ const updateClintsCard = async (req, res) => {
     existingCard.category = category || existingCard.category;
     existingCard.canDownload = canDownload !== undefined ? canDownload : existingCard.canDownload;
     existingCard.canView = canView !== undefined ? canView : existingCard.canView;
+    existingCard.pin = pin || existingCard.pin;
 
     // Save the updated card
     await existingCard.save();
@@ -133,10 +86,6 @@ const updateClintsCard = async (req, res) => {
     res.status(500).json({ message: "Error updating card", error: error.message });
   }
 };
-
-
-
-
 
 const getCards = async (req, res) => {
   try {
@@ -190,6 +139,7 @@ const uploadCardByCategory = async (req, res) => {
       date,
       image: uploadResponse.secure_url,
       category,
+      pin
     });
 
     await newCard.save();
@@ -225,6 +175,7 @@ const uploadCardWithDriveLink = async (req, res) => {
       clientId,
       imageUrl: driveLink,
       category,
+      pin
     });
 
     res.status(201).json(news);
@@ -363,21 +314,6 @@ const downloadFile = async (req, res) => {
   }
 };
 
-// const getCardBySlug = async (req, res) => {
-//   try {
-//     const card = await Card.findOne({ slug: req.params.slug });
-
-//     if (!card) {
-//       return res.status(404).json({ message: 'Card not found' });
-//     }
-
-//     res.json(card);
-//   } catch (error) {
-//     res.status(500).json({ message: 'Failed to fetch card' });
-//   }
-// };
-
-
 export {
   uploadCard,
   deleteCard,
@@ -393,5 +329,4 @@ export {
   UpdateCardWithDriveLink,
   downloadFile,
   updateClintsCard,
-  // getCardBySlug,
 };
