@@ -12,11 +12,9 @@ import {
   updateCategory,
   downloadFile,
   updateClintsCard,
-  // getCardBySlug,
 } from "../../controllers/cardController.js";
 
 import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
-// import { sendBookingEmail } from "../controllers/bookingController.js";
 
 import { fetchImagesFromNAS, serveNASImage, downloadNASImage } from "../../controllers/nasController.js";
 
@@ -56,12 +54,7 @@ router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/google-auth", googleAuth);
 
-// Define the route for downloading files
 router.get('/download/:fileId', downloadFile);
-
-// router.get('/cards/slug/:slug', getCardBySlug);
-//  ===================|| Booking Routes ||======================
-
 
 
 export default router;

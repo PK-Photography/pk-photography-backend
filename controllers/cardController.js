@@ -28,23 +28,37 @@ const uploadCard = async (req, res) => {
   const { name, date, image, category, pin, url } = req.body;
 
   try {
+    // Check if name already exists
+    const existingCard = await Card.findOne({ name });
+    if (existingCard) {
+      return res.status(400).json({ message: "Card name already exists." });
+    }
+
+    // Upload image to Cloudinary
     const uploadResponse = await cloudinary.v2.uploader.upload(image, {
       folder: "wedding_cards",
     });
 
+    // Create new card
     const newCard = new Card({
       name,
       date,
       imageUrl: uploadResponse.secure_url,
       category,
       pin,
-      url
+      url,
     });
 
     await newCard.save();
 
     res.status(201).json({ message: "Card uploaded successfully", newCard });
   } catch (error) {
+    // Check for MongoDB duplicate key error
+    if (error.code === 11000 && error.keyPattern?.name) {
+      return res.status(400).json({ message: "Card name must be unique." });
+    }
+
+    console.error("Upload card error:", error);
     res.status(500).json({ message: "Error uploading image", error });
   }
 };

@@ -5,8 +5,8 @@ const cardSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
+      unique: true
     },
-
     imageUrl: {
       type: String,
       required: true,
