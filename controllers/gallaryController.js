@@ -1,7 +1,5 @@
 import gallary from '../models/gallaryModel.js';
 
-// UPLOAD: Upload a gallery image
-// UPLOAD: Upload a gallery image
 export const uploadgallary = async (req, res) => {
     try {
         // Check if file exists

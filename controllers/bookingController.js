@@ -1,9 +1,5 @@
-
-
-
 import Booking from '../models/booking.js';
 import { sendEmail } from '../services/nodeMailerService.js';
-
 
 export const createBooking = async (req, res) => {
     const {
@@ -45,30 +41,30 @@ export const createBooking = async (req, res) => {
 
         // Send email to the client
         console.log("Sending confirmation email to client:", email);
-        await sendEmail(
-            email,
-            'Your Booking Confirmation - PK Photography',
-            'bookingInformation', // Client's email template
-            { name, service, date, time } // Dynamic data for the client's email
-        );
+        // await sendEmail(
+        //     email,
+        //     'Your Booking Confirmation - PK Photography',
+        //     'bookingInformation', // Client's email template
+        //     { name, service, date, time } // Dynamic data for the client's email
+        // );
 
         // Send email to the admin
         console.log("Sending booking notification to admin...");
-        await sendEmail(
-            process.env.ADMIN_EMAIL, // Admin email
-            'New Booking Notification - PK Photography',
-            'newBookingNotification', // Admin's email template
-            {
-                name: newBooking.name,
-                email: newBooking.email,
-                phone: newBooking.phone || "Not Provided",
-                address: newBooking.address || "Not Provided",
-                service: newBooking.service,
-                message: newBooking.message || "Not Provided",
-                date: newBooking.date,
-                time: newBooking.time || "Not Provided",
-            }
-        );
+        // await sendEmail(
+        //     process.env.ADMIN_EMAIL, // Admin email
+        //     'New Booking Notification - PK Photography',
+        //     'newBookingNotification', // Admin's email template
+        //     {
+        //         name: newBooking.name,
+        //         email: newBooking.email,
+        //         phone: newBooking.phone || "Not Provided",
+        //         address: newBooking.address || "Not Provided",
+        //         service: newBooking.service,
+        //         message: newBooking.message || "Not Provided",
+        //         date: newBooking.date,
+        //         time: newBooking.time || "Not Provided",
+        //     }
+        // );
 
         // Respond to the client
         res.status(201).json({
