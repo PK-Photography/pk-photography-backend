@@ -6,72 +6,6 @@ import bcrypt from 'bcryptjs';
 import passport from "passport";
 import jwt from "jsonwebtoken";
 
-// const UserSignUp = async (req, res) => {
-//   try {
-//     const { fullName, mobileNo, email, password } = req.body;
-
-//     // Custom validations
-//     if (!fullName || !mobileNo || !email || !password) {
-//       return res.status(400).json({ success: false, message: "All fields are required." });
-//     }
-//     if (!/^[a-zA-Z ]{2,50}$/.test(fullName)) {
-//       return res.status(400).json({ success: false, message: "Invalid full name format." });
-//     }
-//     if (!/^\+?[0-9]{10,15}$/.test(mobileNo)) {
-//       return res.status(400).json({ success: false, message: "Invalid mobile number format." });
-//     }
-//     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-//       return res.status(400).json({ success: false, message: "Invalid email format." });
-//     }
-//     if (password.length < 6) {
-//       return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
-//     }
-
-//     const lowerCaseEmail = email.toLowerCase();
-
-//     // Check if user already exists
-//     const existingUser = await User.findOne({ email: lowerCaseEmail });
-//     if (existingUser) {
-//       return res.status(400).json({ success: false, message: "User already registered." });
-//     }
-
-//     // Create new user
-//     const newUser = {
-//       fullName,
-//       mobileNo,
-//       email: lowerCaseEmail,
-//       password,
-//     };
-
-//     const createdUser = await User.create(newUser);
-//     if (!createdUser) {
-//       return res.status(500).json({ success: false, message: "User creation failed." });
-//     }
-
-//     // Generate and send OTP
-//     const otp = Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
-//     await User.updateOne({ email: createdUser.email }, { $set: { otp } });
-
-//     const subject = "Account Verification OTP";
-//     const emailData = { name: createdUser.fullName, otp };
-//     await sendEmail(createdUser.email, subject, "otpTemplate", emailData);
-
-//     return res.status(201).json({
-//       success: true,
-//       message: "Check your email for the OTP to verify your account.",
-//     });
-//   } catch (error) {
-//     console.error("Error in UserSignUp:", error); // Log the error for debugging
-//     return res.status(500).json({
-//       success: false,
-//       message: "Something went wrong!",
-//       error: error.message,
-//     });
-//   }
-// };
-
-
-
 export const googleAuth = passport.authenticate("google", { scope: ["profile", "email"] });
 const googleAuthController = async (req, res) => {
   try {
@@ -189,13 +123,14 @@ const UserSignUp = async (req, res) => {
     const otp = Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
     await User.updateOne({ email: createdUser.email }, { $set: { otp } });
 
-    const subject = "Account Verification OTP";
-    const emailData = { name: createdUser.fullName, otp };
-    await sendEmail(createdUser.email, subject, "otpTemplate", emailData);
+    // const subject = "Account Verification OTP";
+    // const emailData = { name: createdUser.fullName, otp };
+    // await sendEmail(createdUser.email, subject, "otpTemplate", emailData);
 
     return res.status(201).json({
       success: true,
       message: "Check your email for the OTP to verify your account.",
+      otp: otp
     });
   } catch (error) {
     console.error("Error in UserSignUp:", error); // Log the error for debugging
@@ -548,48 +483,5 @@ const UserResetPassword = async (req, res) => {
   }
 };
 
-
-
-// const updateProfileImage = async (req, res) => {
-//   try {
-//     const userData = await dbService.findOne(User, { _id: req.user.id });
-//     if (!userData) {
-//       return res.badRequest({ message: "User doesn't exist." });
-//     }
-
-//     const { fields, files } = await parseForm(req);
-
-//     const normalizedFields = {};
-//     for (const key in fields) {
-//       if (fields.hasOwnProperty(key)) {
-//         normalizedFields[key] = fields[key][0];
-//       }
-//     }
-
-//     if (!files || !files["profileImage"]) {
-//       return res.badRequest({ message: "Profile Image is missing" });
-//     }
-
-//     const uploadedImage = await upload(
-//       files["profileImage"],
-//       ImageRule.user_profile,
-//       userData.profileImage ? userData.profileImage : null
-//     );
-
-//     const updatedData = await User.findByIdAndUpdate(
-//       { _id: userData.id },
-//       { $set: { profileImage: uploadedImage } },
-//       { new: true }
-//     );
-
-//     if (!updatedData) {
-//       return res.recordNotFound({ data: updatedData });
-//     }
-
-//     return res.success({ data: updatedData });
-//   } catch (error) {
-//     return res.internalServerError({ message: error.message });
-//   }
-// };
 
 export { updateUserRole, getAllUsers, UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile, googleAuthController, getProfile };

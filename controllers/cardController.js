@@ -133,7 +133,7 @@ const updateCategory = async (req, res) => {
     const { id, category } = req.body;
     const updatedCard = await Card.findByIdAndUpdate(
       id,
-      { $push: { category: category } },
+      { $set: { category } }, // ✅ replace category instead of pushing
       { new: true }
     );
     res.json(updatedCard);
@@ -268,6 +268,32 @@ const deleteCard = async (req, res) => {
   }
 };
 
+// Delete one category from a card by category _id
+const deleteCardCategory = async (req, res) => {
+  try {
+    const { cardId, categoryId } = req.body;
+
+    const updatedCard = await Card.findByIdAndUpdate(
+      cardId,
+      {
+        $pull: {
+          category: { _id: categoryId }
+        }
+      },
+      { new: true }
+    );
+
+    if (!updatedCard) {
+      return res.status(404).json({ message: "Card not found" });
+    }
+
+    res.json({ message: "Category deleted successfully", card: updatedCard });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete category" });
+  }
+};
+
 // Delete a specific category from a card
 const deleteCategory = async (req, res) => {
   const { id, categoryName } = req.body;
@@ -348,4 +374,5 @@ export {
   UpdateCardWithDriveLink,
   downloadFile,
   updateClintsCard,
+  deleteCardCategory
 };

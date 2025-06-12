@@ -21,6 +21,6 @@ router.use(authRoutes);
 router.use(carouselImageRoutes);
 router.use(userRoutes);
 router.use(gallaryRoutes);
-router.use("/api/phonepe", phonepeRoutes);
+router.use(phonepeRoutes);
 
 export default router;

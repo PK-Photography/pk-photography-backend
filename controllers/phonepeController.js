@@ -1,9 +1,13 @@
 import crypto from "crypto";
 import axios from "axios";
 
-const merchantId = process.env.PHONEPE_MERCHANT_ID;
-const saltKey = process.env.PHONEPE_SALT_KEY;
-const saltIndex = process.env.PHONEPE_SALT_INDEX;
+// const merchantId = process.env.PHONEPE_MERCHANT_ID;
+// const saltKey = process.env.PHONEPE_SALT_KEY;
+// const saltIndex = process.env.PHONEPE_SALT_INDEX;
+
+const merchantId = 'TEST-M233ITW27QX8H_25060';
+const saltKey = 'NDBhNGQ3OTAtMDY1Ni00ZDVjLWJiMDQtZGY1MGRkZWRjYmZl';
+const saltIndex = 1;
 const baseUrl = "https://api-preprod.phonepe.com/apis/pg-sandbox";
 
 const initiatePayment = async (req, res) => {
@@ -13,9 +17,9 @@ const initiatePayment = async (req, res) => {
     merchantTransactionId: transactionId,
     merchantUserId: "USER123",
     amount: 10000, // ₹100 in paise
-    redirectUrl: "https://your-site.com/payment-success",
+    redirectUrl: "https://pkphotography.in/payment-success",
     redirectMode: "POST",
-    callbackUrl: "https://your-backend.com/api/phonepe/callback",
+    callbackUrl: "https://pkphotography.in/api/phonepe/callback",
     paymentInstrument: {
       type: "PAY_PAGE",
     },
