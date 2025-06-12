@@ -12,6 +12,7 @@ import {
   updateCategory,
   downloadFile,
   updateClintsCard,
+  deleteCardCategory
 } from "../../controllers/cardController.js";
 
 import { sendOtp, verifyOtp, googleAuth } from "../../controllers/authController.js";
@@ -47,6 +48,7 @@ router.post("/cards/category", uploadCardByCategory);
 router.put("/cards/drive-update", UpdateCardWithDriveLink);
 
 router.put("/cards/update-category", updateCategory);
+router.put("/cards/delete-category", deleteCardCategory);
 
 router.get("/client/cards", getCardsByClientId);
 
