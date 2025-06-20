@@ -79,13 +79,20 @@ export const updategallary = async (req, res) => {
 
 // READ: Get all gallery images
 export const getgallarys = async (req, res) => {
-    const { category } = req.query; // Extract category from query parameters
+    const { category } = req.query;
 
     try {
-        // Build the filter object
-        const filter = category && category !== 'All' ? { categories: category } : {};
+        let filter = {};
 
-        // Fetch and sort images based on the filter and sort by creation date (latest first)
+        if (!category) {
+            // If no category is provided, show only those with category === 'All'
+            filter = { categories: 'All' };
+        } else if (category !== 'All') {
+            // If a specific category is provided (other than 'All'), filter by it
+            filter = { categories: category };
+        }
+        // else: if category === 'All', keep filter empty to return all items
+
         const images = await gallary.find(filter).sort({ createdAt: -1 });
 
         res.status(200).json({ data: images });
@@ -93,7 +100,6 @@ export const getgallarys = async (req, res) => {
         res.status(500).json({ message: 'Error fetching images', error: error.message });
     }
 };
-
 
 // READ: Get a single gallery image by ID
 export const getgallaryById = async (req, res) => {
