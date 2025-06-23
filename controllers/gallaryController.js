@@ -6,7 +6,8 @@ export const uploadgallary = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        const { imageName, subtitle, categories } = req.body;
+
+        const { imageName, subtitle, categories, position } = req.body;
 
         // Parse categories if it's a string (i.e., it was stringified on the frontend)
         let parsedCategories = categories;
@@ -23,7 +24,8 @@ export const uploadgallary = async (req, res) => {
             imageName,
             subtitle,
             imageUrl: req.file.path,
-            categories: parsedCategories,  // Use the parsed array
+            categories: parsedCategories,
+            position: Number(position) || 0, // fallback to 0 if not provided or invalid
         });
 
         await newImage.save();
@@ -41,12 +43,17 @@ export const uploadgallary = async (req, res) => {
 // UPDATE: Update a gallery image by ID
 export const updategallary = async (req, res) => {
     try {
-        const { imageName, subtitle, categories } = req.body;
+        const { imageName, subtitle, categories, position } = req.body;
         const updateData = { imageName, subtitle, categories };
 
         // Validate categories if provided
         if (categories && (!Array.isArray(categories) || categories.length === 0)) {
             return res.status(400).json({ message: 'Categories must be a non-empty array' });
+        }
+
+        // Add position if provided
+        if (position !== undefined) {
+            updateData.position = Number(position) || 0; // fallback to 0 if invalid
         }
 
         // Check if a new file is uploaded
@@ -93,7 +100,7 @@ export const getgallarys = async (req, res) => {
         }
         // else: if category === 'All', keep filter empty to return all items
 
-        const images = await gallary.find(filter).sort({ createdAt: -1 });
+        const images = await gallary.find(filter).sort({ position: -1 });
 
         res.status(200).json({ data: images });
     } catch (error) {

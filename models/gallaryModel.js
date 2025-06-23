@@ -4,11 +4,9 @@ const gallarySchema = new mongoose.Schema(
     {
         imageName: {
             type: String,
-            // required: true,
         },
         subtitle: {
             type: String,
-            // required: true,
         },
         imageUrl: {
             type: String,
@@ -32,6 +30,10 @@ const gallarySchema = new mongoose.Schema(
                 'Design',
             ],
             required: true,
+        },
+        position: {
+            type: Number,
+            default: 0, // optional default value
         },
     },
     {
