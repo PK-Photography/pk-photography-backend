@@ -6,6 +6,7 @@ import carouselImageRoutes from "./v1/carouselImageRoutes.js"
 import userRoutes from "./v1/userRoutes.js"
 import gallaryRoutes from "./v1/gallaryRoutes.js"
 import phonepeRoutes from './v1/phonepeRoutes.js';
+import blogRoutes from './v1/blogRoutes.js';
 
 const router = express.Router();
 
@@ -22,5 +23,6 @@ router.use(carouselImageRoutes);
 router.use(userRoutes);
 router.use(gallaryRoutes);
 router.use(phonepeRoutes);
+router.use(blogRoutes);
 
 export default router;
