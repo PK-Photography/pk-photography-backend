@@ -12,7 +12,7 @@ const carouselImageSchema = new mongoose.Schema(
         },
         imageType: {
             type: String,
-            enum: ['mobile', 'Desktop', 'homepage'],
+            enum: ['mobile', 'Desktop', 'homepage_web', 'homepage_mobile'],
             default: 'Desktop',
         },
     },
