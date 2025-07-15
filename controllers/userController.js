@@ -74,66 +74,80 @@ const updateUserRole = async (req, res) => {
   }
 };
 
-
-
-
 const UserSignUp = async (req, res) => {
   try {
     const { fullName, mobileNo, email, password } = req.body;
 
-    // Custom validations
-    if (!fullName || !mobileNo || !email || !password) {
-      return res.status(400).json({ success: false, message: "All fields are required." });
+    // Basic validation
+    if (!fullName || !mobileNo) {
+      return res.status(400).json({ success: false, message: "Name and mobile number are required." });
     }
+
     if (!/^[a-zA-Z ]{2,50}$/.test(fullName)) {
       return res.status(400).json({ success: false, message: "Invalid full name format." });
     }
+
     if (!/^\+?[0-9]{10,15}$/.test(mobileNo)) {
       return res.status(400).json({ success: false, message: "Invalid mobile number format." });
     }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ success: false, message: "Invalid email format." });
     }
-    if (password.length < 6) {
+
+    if (password && password.length < 6) {
       return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
     }
 
-    const lowerCaseEmail = email.toLowerCase();
+    const existingUser = await User.findOne({ mobileNo });
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email: lowerCaseEmail });
+    // If user exists
     if (existingUser) {
-      return res.status(400).json({ success: false, message: "User already registered." });
+      // If password is passed, validate
+      if (password && existingUser.password) {
+        const isMatch = await bcrypt.compare(password, existingUser.password);
+        if (!isMatch) {
+          return res.status(401).json({ success: false, message: "Invalid password." });
+        }
+      }
+
+      const accessToken = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+      const refreshToken = jwt.sign({ id: existingUser._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+
+      return res.status(200).json({
+        success: true,
+        message: "Logged in successfully.",
+        data: {
+          user: existingUser,
+          accessToken,
+          refreshToken,
+        },
+      });
     }
 
-    // Create new user (store plain password directly)
-    const newUser = {
+    // If new user
+    const newUser = await User.create({
       fullName,
       mobileNo,
-      email: lowerCaseEmail,
-      password, // Store plain password
-    };
+      email: email?.toLowerCase(),
+      password: password ? await bcrypt.hash(password, 10) : undefined,
+    });
 
-    const createdUser = await User.create(newUser);
-    if (!createdUser) {
-      return res.status(500).json({ success: false, message: "User creation failed." });
-    }
-
-    // Generate and send OTP
-    const otp = Math.floor(100000 + Math.random() * 900000); // Random 6-digit OTP
-    await User.updateOne({ email: createdUser.email }, { $set: { otp } });
-
-    // const subject = "Account Verification OTP";
-    // const emailData = { name: createdUser.fullName, otp };
-    // await sendEmail(createdUser.email, subject, "otpTemplate", emailData);
+    const accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+    const refreshToken = jwt.sign({ id: newUser._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
 
     return res.status(201).json({
       success: true,
-      message: "Check your email for the OTP to verify your account.",
-      otp: otp
+      message: "Account created successfully.",
+      data: {
+        user: newUser,
+        accessToken,
+        refreshToken,
+      },
     });
+
   } catch (error) {
-    console.error("Error in UserSignUp:", error); // Log the error for debugging
+    console.error("Error in UserSignUp:", error);
     return res.status(500).json({
       success: false,
       message: "Something went wrong!",
@@ -141,7 +155,6 @@ const UserSignUp = async (req, res) => {
     });
   }
 };
-
 
 const UserVerifyEmailOTP = async (req, res) => {
   try {
@@ -378,8 +391,6 @@ const updateUserProfile = async (req, res) => {
   }
 };
 
-
-
 /**
  * @description : Initiates the process to reset user password by sending an OTP to the registered email.
  * @param {Object} req : The request object containing the user's email.
@@ -482,6 +493,5 @@ const UserResetPassword = async (req, res) => {
     });
   }
 };
-
 
 export { updateUserRole, getAllUsers, UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile, googleAuthController, getProfile };

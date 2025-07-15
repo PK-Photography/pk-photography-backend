@@ -26,9 +26,6 @@ const sendOtp = async (req, res) => {
     }
 };
 
-
-
-
 const verifyOtp = async (req, res) => {
     const { phoneNumber, otp } = req.body;
     try {
@@ -49,7 +46,6 @@ const verifyOtp = async (req, res) => {
         res.status(500).json({ success: false, message: "Verification failed", error: error.message });
     }
 };
-
 
 const googleAuth = async (req, res) => {
     const { token } = req.body;
