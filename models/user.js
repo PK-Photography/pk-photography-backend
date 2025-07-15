@@ -26,7 +26,7 @@ const schema = new Schema(
     mobileNo: { type: String },
     image: String,
     profileImage: { type: String, default: "" },
-    email: { type: String, required: true },
+    email: { type: String, required: false },
     isverify: { type: Boolean, default: false },
     isBan: { type: Boolean, default: false },
     banReason: { type: String, default: "" },
