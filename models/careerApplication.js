@@ -1,5 +1,5 @@
 // models/CareerApplication.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const careerApplicationSchema = new mongoose.Schema({
   name: {
@@ -25,10 +25,15 @@ const careerApplicationSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  status: {
+    type: String,
+    enum: ["approved", "pending", "rejected"],
+    default: "pending",
+  },
 });
 
-
 const CareerApplication =
-  mongoose.models.CareerApplication || mongoose.model('CareerApplication', careerApplicationSchema);
+  mongoose.models.CareerApplication ||
+  mongoose.model("CareerApplication", careerApplicationSchema);
 
 export default CareerApplication;

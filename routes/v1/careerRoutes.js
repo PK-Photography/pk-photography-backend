@@ -1,6 +1,11 @@
 // routes/careerRoutes.js
 import express from "express";
-import { submitCareerApplication } from "../../controllers/careerController.js";
+import {
+  submitCareerApplication,
+  getApplications,
+  updateStatus,
+  getResume,
+} from "../../controllers/careerController.js";
 import upload from "../../middleware/uploadMiddleware.js";
 const router = express.Router();
 
@@ -9,5 +14,11 @@ router.post(
   upload.single("resume"),
   submitCareerApplication
 );
+
+router.get("/careers", getApplications);
+
+router.put("/careers/:id/status", updateStatus);
+
+router.get("/careers/resume-url/:key", getResume);
 
 export default router;
