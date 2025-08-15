@@ -12,7 +12,7 @@ const createCard = async (req, res) => {
       date,
       imageUrl,
       pin,
-      url
+      url,
     });
 
     await newCard.save();
@@ -28,8 +28,9 @@ const uploadCard = async (req, res) => {
   const { name, date, image, category, pin, url } = req.body;
 
   try {
+    const trimmedName = name.trim();
     // Check if name already exists
-    const existingCard = await Card.findOne({ name });
+    const existingCard = await Card.findOne({ name: trimmedName });
     if (existingCard) {
       return res.status(400).json({ message: "Card name already exists." });
     }
@@ -41,7 +42,7 @@ const uploadCard = async (req, res) => {
 
     // Create new card
     const newCard = new Card({
-      name,
+      name: trimmedName,
       date,
       imageUrl: uploadResponse.secure_url,
       category,
@@ -65,13 +66,22 @@ const uploadCard = async (req, res) => {
 
 const updateClintsCard = async (req, res) => {
   const { id } = req.params; // Card ID from request params
-  const { name, date, image, category, canDownload, canView, pin, url } = req.body;
+  const { name, date, image, category, canDownload, canView, pin, url } =
+    req.body;
 
   try {
     // Find the existing card by ID
     const existingCard = await Card.findById(id);
     if (!existingCard) {
       return res.status(404).json({ message: "Card not found" });
+    }
+
+    if (name) {
+      const trimmedName = name.trim();
+      const existingNamedCard = await Card.findOne({ name: trimmedName });
+      if (existingNamedCard && existingCard.id !== existingNamedCard.id) {
+        return res.status(400).json({ message: "Card name already exists." });
+      }
     }
 
     let imageUrl = existingCard.imageUrl;
@@ -85,22 +95,28 @@ const updateClintsCard = async (req, res) => {
     }
 
     // Update the card fields
-    existingCard.name = name || existingCard.name;
+    existingCard.name = name.trim() || existingCard.name;
     existingCard.date = date || existingCard.date;
     existingCard.imageUrl = imageUrl;
     existingCard.category = category || existingCard.category;
-    existingCard.canDownload = canDownload !== undefined ? canDownload : existingCard.canDownload;
-    existingCard.canView = canView !== undefined ? canView : existingCard.canView;
+    existingCard.canDownload =
+      canDownload !== undefined ? canDownload : existingCard.canDownload;
+    existingCard.canView =
+      canView !== undefined ? canView : existingCard.canView;
     existingCard.pin = pin || existingCard.pin;
     existingCard.url = url || existingCard.url;
 
     // Save the updated card
     await existingCard.save();
 
-    res.status(200).json({ message: "Card updated successfully", card: existingCard });
+    res
+      .status(200)
+      .json({ message: "Card updated successfully", card: existingCard });
   } catch (error) {
     console.error("Error updating card:", error);
-    res.status(500).json({ message: "Error updating card", error: error.message });
+    res
+      .status(500)
+      .json({ message: "Error updating card", error: error.message });
   }
 };
 
@@ -157,7 +173,7 @@ const uploadCardByCategory = async (req, res) => {
       image: uploadResponse.secure_url,
       category,
       pin,
-      url
+      url,
     });
 
     await newCard.save();
@@ -194,7 +210,7 @@ const uploadCardWithDriveLink = async (req, res) => {
       imageUrl: driveLink,
       category,
       pin,
-      url
+      url,
     });
 
     res.status(201).json(news);
@@ -277,8 +293,8 @@ const deleteCardCategory = async (req, res) => {
       cardId,
       {
         $pull: {
-          category: { _id: categoryId }
-        }
+          category: { _id: categoryId },
+        },
       },
       { new: true }
     );
@@ -350,12 +366,10 @@ const downloadFile = async (req, res) => {
     response.data.pipe(res);
   } catch (error) {
     console.error("Error fetching file:", error.message); // Log the error message
-    res
-      .status(404)
-      .json({
-        message: "File not found or inaccessible",
-        error: error.message,
-      });
+    res.status(404).json({
+      message: "File not found or inaccessible",
+      error: error.message,
+    });
   }
 };
 
@@ -374,5 +388,5 @@ export {
   UpdateCardWithDriveLink,
   downloadFile,
   updateClintsCard,
-  deleteCardCategory
+  deleteCardCategory,
 };
