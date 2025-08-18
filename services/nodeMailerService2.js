@@ -12,8 +12,8 @@ const transporter = nodemailer.createTransport({
 
 export const sendBookingEmail = async (newBooking) => {
   await transporter.sendMail({
-    from: process.env.nodemailer_from_email,
-    to: process.env.nodemailer_to_email,
+    from: "Prabhakar@pkphotography.in",
+    to: "Prabhakar@pkphotography.in",
     subject: "New Booking Received",
     html: `
       <h2 style="color: #2e6c80;">📸 New Booking Confirmed</h2>
