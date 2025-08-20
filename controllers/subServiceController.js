@@ -1,5 +1,6 @@
 import SubService from "../models/subService.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
+import { getImageUrl } from "../utils/imageService.js";
 
 // CREATE
 export const createSubService = async (req, res) => {
@@ -45,7 +46,7 @@ export const createSubService = async (req, res) => {
       description: description.trim(),
       whatYouGet: whatYouGet.trim(),
       perfectFor: perfectFor.trim(),
-      imageUrl: s3Result.Location,
+      imageUrl: s3Result.Key,
       upgradeOption: upgradeOption.trim(),
     };
 
@@ -67,7 +68,14 @@ export const createSubService = async (req, res) => {
 export const getSubServices = async (req, res) => {
   try {
     const subServices = await SubService.find();
-    res.status(200).json(subServices);
+    const withUrlSubServices = await Promise.all(
+      subServices.map(async (service) => {
+        const imageUrl = await getImageUrl(service.imageUrl, 10800);
+        const updatedSubService = { ...service._doc, imageUrl: imageUrl };
+        return updatedSubService;
+      })
+    );
+    res.status(200).json(withUrlSubServices);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Failed to fetch sub-services" });
@@ -108,7 +116,7 @@ export const updateSubService = async (req, res) => {
     if (perfectFor !== undefined) updatedObj.perfectFor = perfectFor.trim();
     if (upgradeOption !== undefined)
       updatedObj.upgradeOption = upgradeOption.trim();
-    if (s3Result) updatedObj.imageUrl = s3Result.Location;
+    if (s3Result) updatedObj.imageUrl = s3Result.Key;
     if (advanceAmount !== undefined && !isNaN(parseFloat(advanceAmount))) {
       updatedObj.advanceAmount = parseFloat(advanceAmount);
     }

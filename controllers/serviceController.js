@@ -1,5 +1,6 @@
 import Service from "../models/serviceModel.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
+import { getImageUrl } from "../utils/imageService.js";
 
 export const createService = async (req, res) => {
   try {
@@ -19,7 +20,7 @@ export const createService = async (req, res) => {
     if (name !== undefined) objToUpload.name = name.trim();
     if (description !== undefined) objToUpload.description = description.trim();
     if (duration !== undefined) objToUpload.duration = duration.trim();
-    if (s3Result) objToUpload.imageUrl = s3Result.Location;
+    if (s3Result) objToUpload.imageUrl = s3Result.Key;
 
     const createdService = new Service(objToUpload);
 
@@ -34,7 +35,14 @@ export const createService = async (req, res) => {
 export const getServices = async (req, res) => {
   try {
     const services = await Service.find();
-    res.status(200).json(services);
+    const withUrlServices = await Promise.all(
+      services.map(async (service) => {
+        const imageUrl = await getImageUrl(service.imageUrl, 10800);
+        const updatedService = { ...service._doc, imageUrl: imageUrl };
+        return updatedService;
+      })
+    );
+    res.status(200).json(withUrlServices);
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Failed to fetch services" });
@@ -54,7 +62,7 @@ export const updateService = async (req, res) => {
     if (name !== undefined) updatedObj.name = name.trim();
     if (description !== undefined) updatedObj.description = description.trim();
     if (duration !== undefined) updatedObj.duration = duration.trim();
-    if (s3Result) updatedObj.imageUrl = s3Result.Location;
+    if (s3Result) updatedObj.imageUrl = s3Result.Key;
 
     const updatedService = await Service.findByIdAndUpdate(
       req.params.id,
