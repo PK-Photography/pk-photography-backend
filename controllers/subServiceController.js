@@ -1,4 +1,5 @@
 import SubService from "../models/subService.js";
+import Service from "../models/serviceModel.js";
 import { uploadToS3 } from "../utils/uploadToS3.js";
 import { getImageUrl } from "../utils/imageService.js";
 
@@ -149,5 +150,18 @@ export const deleteSubService = async (req, res) => {
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Unable to delete the sub-service" });
+  }
+};
+
+export const getSpecificSubServices = async (req, res) => {
+  try {
+    const service = await Service.findOne({ name: req.params.name });
+    if (!service)
+      return res.status(400).json({ message: " Service Not found" });
+    const subServices = await SubService.find({ serviceId: service._id });
+    return res.status(200).json(subServices);
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Unable to fetch sub services" });
   }
 };
