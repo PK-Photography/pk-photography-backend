@@ -8,10 +8,10 @@ const s3 = new AWS.S3({
   region: process.env.AWS_REGION,
 });
 
-export const uploadToS3 = async (file) => {
+export const uploadToS3 = async (file, purpose) => {
   const params = {
     Bucket: process.env.S3_BUCKET,
-    Key: `resumes/${uuidv4()}_${file.originalname}`,
+    Key: `${purpose}/${uuidv4()}_${file.originalname}`,
     Body: file.buffer,
     ContentType: file.mimetype,
   };

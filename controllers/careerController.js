@@ -13,7 +13,7 @@ export const submitCareerApplication = async (req, res) => {
     if (!file)
       return res.status(400).json({ error: "Resume file is required" });
 
-    const s3Result = await uploadToS3(file);
+    const s3Result = await uploadToS3(file, "resumes");
 
     const application = new CareerApplication({
       name,
