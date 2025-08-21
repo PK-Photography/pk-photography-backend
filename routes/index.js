@@ -8,6 +8,8 @@ import gallaryRoutes from "./v1/gallaryRoutes.js";
 import phonepeRoutes from "./v1/phonepeRoutes.js";
 import blogRoutes from "./v1/blogRoutes.js";
 import careerRoutes from "./v1/careerRoutes.js";
+import serviceRoutes from "./v1/serviceRoutes.js";
+import subServiceRoutes from "./v1/subServiceRoutes.js";
 
 const router = express.Router();
 
@@ -26,5 +28,7 @@ router.use(gallaryRoutes);
 router.use(phonepeRoutes);
 router.use(blogRoutes);
 router.use(careerRoutes);
+router.use(serviceRoutes);
+router.use(subServiceRoutes);
 
 export default router;
