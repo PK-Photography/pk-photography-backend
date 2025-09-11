@@ -16,6 +16,6 @@ router.get("/blogs", getBlogs);
 router.get("/blogs/:id", getBlogById);
 router.put("/blogs/:id", upload.single("image"), updateBlog);
 router.delete("/blogs/:id", deleteBlog);
-router.patch("/blogs/addComment/:id", addComment);
+router.put("/blogs/addComment/:id", addComment);
 
 export default router;
