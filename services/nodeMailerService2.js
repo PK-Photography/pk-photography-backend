@@ -44,3 +44,20 @@ export const sendBookingEmail = async (newBooking) => {
     `,
   });
 };
+
+export const sendCareerEmail = async (application) => {
+  await transporter.sendMail({
+    from: "Prabhakar@pkphotography.in",
+    to: "Prabhakar@pkphotography.in",
+    subject: "New Job Application Received",
+    html: `
+      <h2 style="color: #2e6c80;"> New Job Application</h2>
+      <p>A new job application has been received with the following details:</p>
+      <table cellpadding="8" cellspacing="0" border="0" style="border-collapse: collapse;">
+        <tr><td><strong>Name:</strong></td><td>${application.name}</td></tr>
+        <tr><td><strong>Email:</strong></td><td>${application.email}</td></tr>
+        <tr><td><strong>Phone:</strong></td><td>${application.phone}</td></tr>
+       </table>  
+    `,
+  });
+};
