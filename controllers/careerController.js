@@ -4,6 +4,7 @@ import { uploadToS3 } from "../utils/uploadToS3.js";
 import s3 from "../utils/s3Config.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { sendCareerEmail } from "../services/nodeMailerService2.js";
 
 export const submitCareerApplication = async (req, res) => {
   try {
@@ -23,6 +24,7 @@ export const submitCareerApplication = async (req, res) => {
     });
 
     await application.save();
+    await sendCareerEmail(application);
     res.status(201).json({ message: "Application submitted successfully" });
   } catch (err) {
     console.error(err);
