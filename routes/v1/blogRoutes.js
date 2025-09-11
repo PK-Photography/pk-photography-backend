@@ -5,6 +5,7 @@ import {
   getBlogById,
   updateBlog,
   deleteBlog,
+  addComment,
 } from "../../controllers/blogController.js";
 import upload from "../../middleware/uploadMiddleware.js";
 
@@ -15,5 +16,6 @@ router.get("/blogs", getBlogs);
 router.get("/blogs/:id", getBlogById);
 router.put("/blogs/:id", upload.single("image"), updateBlog);
 router.delete("/blogs/:id", deleteBlog);
+router.patch("/blogs/addComment/:id", addComment);
 
 export default router;

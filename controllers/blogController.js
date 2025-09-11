@@ -64,6 +64,7 @@ export const getBlogById = async (req, res) => {
   try {
     const blog = await Blog.findById(req.params.id);
     if (!blog) return res.status(404).json({ message: "Blog not found" });
+    await updateViews(req, res);
     const imageUrl = await getImageUrl(blog.imageUrl, 10800);
     const blogWithUrl = { ...blog._doc, imageUrl: imageUrl };
     res.status(200).json(blogWithUrl);
@@ -121,5 +122,39 @@ export const deleteBlog = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error deleting blog", error: error.message });
+  }
+};
+
+const updateViews = async (req, res) => {
+  try {
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
+    blog.views += 1;
+    await blog.save();
+  } catch (error) {
+    console.log("Error updating views:", error.message);
+  }
+};
+
+export const addComment = async (req, res) => {
+  try {
+    const { name, comment } = req.body;
+    if (!name || name.trim() === "" || !comment || comment.trim() === "") {
+      return res
+        .status(400)
+        .json({ message: "Name or Comment cannot be empty" });
+    }
+    const blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).json({ message: "Blog not found" });
+    blog.comments.push({
+      name: name.trim(),
+      comment: comment.trim(),
+    });
+    await blog.save();
+    res.status(200).json({ message: "Comment added", data: blog });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error adding comment", error: error.message });
   }
 };
