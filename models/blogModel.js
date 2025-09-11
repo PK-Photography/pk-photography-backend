@@ -8,6 +8,7 @@ const blogSchema = new mongoose.Schema(
     },
     subtitle: {
       type: String,
+      required: true,
     },
     imageUrl: {
       type: String,
@@ -24,10 +25,9 @@ const blogSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    date: { type: Date },
     comments: {
-      type: Number,
-      default: 0,
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true }
