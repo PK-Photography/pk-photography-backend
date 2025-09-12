@@ -158,3 +158,15 @@ export const addComment = async (req, res) => {
       .json({ message: "Error adding comment", error: error.message });
   }
 };
+
+export const topPicks = async (req, res) => {
+  try {
+    const blogs = await Blog.find().sort({ views: -1 }).limit(3);
+    if (!blogs) return res.status(404).json({ message: "No blogs found" });
+    res.status(200).json(blogs);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching top picks", error: error.message });
+  }
+};
