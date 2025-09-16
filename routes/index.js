@@ -10,6 +10,7 @@ import blogRoutes from "./v1/blogRoutes.js";
 import careerRoutes from "./v1/careerRoutes.js";
 import serviceRoutes from "./v1/serviceRoutes.js";
 import subServiceRoutes from "./v1/subServiceRoutes.js";
+import talentRoutes from "./v1/talentRoutes.js";
 
 const router = express.Router();
 
@@ -30,5 +31,6 @@ router.use(blogRoutes);
 router.use(careerRoutes);
 router.use(serviceRoutes);
 router.use(subServiceRoutes);
+router.use(talentRoutes);
 
 export default router;
