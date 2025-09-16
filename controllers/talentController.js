@@ -56,7 +56,13 @@ export const createTalent = async (req, res) => {
 
 export const getApprovedTalents = async (req, res) => {
   try {
-    const talents = await Talent.find({ approved: true }).sort({
+    const { search } = req.query;
+    const query = {};
+    query.approved = true;
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
+    const talents = await Talent.find(query).sort({
       createdAt: 1,
     });
     const withUrlTalents = await Promise.all(
