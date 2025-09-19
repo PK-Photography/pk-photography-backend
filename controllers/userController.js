@@ -2,11 +2,13 @@ import { JWT } from "../constants/authConstant.js";
 import User from "../models/user.js";
 import { generateToken } from "../services/authServices.js";
 import { sendEmail } from "../services/nodeMailerService.js";
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 
-export const googleAuth = passport.authenticate("google", { scope: ["profile", "email"] });
+export const googleAuth = passport.authenticate("google", {
+  scope: ["profile", "email"],
+});
 const googleAuthController = async (req, res) => {
   try {
     const { name, email, image } = req.body;
@@ -78,23 +80,35 @@ const UserSignUp = async (req, res) => {
 
     // Basic validation
     if (!fullName || !mobileNo) {
-      return res.status(400).json({ success: false, message: "Name and mobile number are required." });
+      return res.status(400).json({
+        success: false,
+        message: "Name and mobile number are required.",
+      });
     }
 
     if (!/^[a-zA-Z ]{2,50}$/.test(fullName)) {
-      return res.status(400).json({ success: false, message: "Invalid full name format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid full name format." });
     }
 
     if (!/^\+?[0-9]{10,15}$/.test(mobileNo)) {
-      return res.status(400).json({ success: false, message: "Invalid mobile number format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid mobile number format." });
     }
 
     if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email format." });
     }
 
     if (password && password.length < 6) {
-      return res.status(400).json({ success: false, message: "Password must be at least 6 characters." });
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 6 characters.",
+      });
     }
 
     const existingUser = await User.findOne({ mobileNo });
@@ -105,12 +119,22 @@ const UserSignUp = async (req, res) => {
       if (password && existingUser.password) {
         const isMatch = await bcrypt.compare(password, existingUser.password);
         if (!isMatch) {
-          return res.status(401).json({ success: false, message: "Invalid password." });
+          return res
+            .status(401)
+            .json({ success: false, message: "Invalid password." });
         }
       }
 
-      const accessToken = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-      const refreshToken = jwt.sign({ id: existingUser._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+      const accessToken = jwt.sign(
+        { id: existingUser._id },
+        process.env.JWT_SECRET,
+        { expiresIn: "1d" }
+      );
+      const refreshToken = jwt.sign(
+        { id: existingUser._id },
+        process.env.JWT_REFRESH_SECRET,
+        { expiresIn: "7d" }
+      );
 
       return res.status(200).json({
         success: true,
@@ -131,8 +155,14 @@ const UserSignUp = async (req, res) => {
       password: password ? await bcrypt.hash(password, 10) : undefined,
     });
 
-    const accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    const refreshToken = jwt.sign({ id: newUser._id }, process.env.JWT_REFRESH_SECRET, { expiresIn: "7d" });
+    const accessToken = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    const refreshToken = jwt.sign(
+      { id: newUser._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
 
     return res.status(201).json({
       success: true,
@@ -143,7 +173,6 @@ const UserSignUp = async (req, res) => {
         refreshToken,
       },
     });
-
   } catch (error) {
     console.error("Error in UserSignUp:", error);
     return res.status(500).json({
@@ -223,8 +252,6 @@ const UserVerifyEmailOTP = async (req, res) => {
   }
 };
 
-
-
 /**
  * @description : get logged In user profile of single User from mongodb collection.
  * @param {Object} req : request including body for creating document.
@@ -265,8 +292,6 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-
-
 /**
  * @description : User login process including validation, checking user existence, verification status, and password comparison.
  * @param {Object} req : The request object including validated body parameters for email and password.
@@ -279,12 +304,16 @@ const login = async (req, res) => {
 
     // Validate required fields
     if (!email || !password) {
-      return res.status(400).json({ success: false, message: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Email and password are required." });
     }
 
     // Validate email format
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return res.status(400).json({ success: false, message: "Invalid email format." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email format." });
     }
 
     const lowerCaseEmail = email.toLowerCase();
@@ -294,7 +323,9 @@ const login = async (req, res) => {
     console.log("User found:", findData); // Log the user data for debugging
 
     if (!findData) {
-      return res.status(400).json({ success: false, message: "User doesn't exist." });
+      return res
+        .status(400)
+        .json({ success: false, message: "User doesn't exist." });
     }
 
     // Check if the user has verified their email
@@ -315,7 +346,9 @@ const login = async (req, res) => {
 
     // Check if passwords match (plain text)
     if (findData.password !== password) {
-      return res.status(400).json({ success: false, message: "Invalid email or password." });
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid email or password." });
     }
 
     // Generate access and refresh tokens
@@ -351,10 +384,8 @@ const login = async (req, res) => {
   }
 };
 
-
 const updateUserProfile = async (req, res) => {
   try {
-
     const { fullName, mobileNo, dob, education, occupation } = req.body;
 
     const dataToUpdate = {
@@ -424,7 +455,8 @@ const UserForgotPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Please check your email and enter the OTP to reset your password.",
+      message:
+        "Please check your email and enter the OTP to reset your password.",
     });
   } catch (error) {
     console.error("Error in forgot password:", error);
@@ -479,7 +511,8 @@ const UserResetPassword = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Password has been reset. You can now login with the new password.",
+      message:
+        "Password has been reset. You can now login with the new password.",
       accessToken, // Return the JWT token if you want
     });
   } catch (error) {
@@ -492,4 +525,100 @@ const UserResetPassword = async (req, res) => {
   }
 };
 
-export { updateUserRole, getAllUsers, UserSignUp, UserVerifyEmailOTP, login, UserResetPassword, UserForgotPassword, getUserProfile, googleAuthController, getProfile };
+const addFavourite = async (req, res) => {
+  try {
+    const { userId, id, name, mediumRes, lowRes, shareableLink, path } =
+      req.body;
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    if (!id || !name || !mediumRes || !lowRes || !shareableLink || !path) {
+      return res
+        .status(400)
+        .json({ message: "All favourite fields are required" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $addToSet: {
+          favourite: { id, name, mediumRes, lowRes, shareableLink, path },
+        },
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error adding favourite", error: err.message });
+  }
+};
+
+const removeFavourite = async (req, res) => {
+  try {
+    const { userId, id } = req.body;
+    if (!userId || !id) {
+      return res
+        .status(400)
+        .json({ message: "User ID and favourite ID are required" });
+    }
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { favourite: { id: id } } },
+      { new: true }
+    );
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Error removing favourite", error: err.message });
+  }
+};
+
+const getFavourites = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.findById(userId).select("favourite");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user.favourite);
+  } catch (err) {
+    res.status(500).json({
+      message: "Error fetching favourites",
+      error: err.message,
+    });
+  }
+};
+
+export {
+  updateUserRole,
+  getAllUsers,
+  UserSignUp,
+  UserVerifyEmailOTP,
+  login,
+  UserResetPassword,
+  UserForgotPassword,
+  getUserProfile,
+  googleAuthController,
+  getProfile,
+  addFavourite,
+  removeFavourite,
+  getFavourites,
+};

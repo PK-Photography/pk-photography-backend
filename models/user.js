@@ -37,6 +37,20 @@ const schema = new Schema(
       enum: ["Viewer", "Writer", "Client", "Subscriber"],
       default: "Viewer",
     },
+
+    favourite: {
+      type: [
+        {
+          id: { type: String },
+          name: { type: String },
+          mediumRes: { type: String },
+          lowRes: { type: String },
+          shareableLink: { type: String },
+          path: { type: String },
+        },
+      ],
+      default: [],
+    },
   },
   {
     timestamps: {
