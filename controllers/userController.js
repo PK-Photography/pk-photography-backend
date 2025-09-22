@@ -151,7 +151,7 @@ const UserSignUp = async (req, res) => {
     const newUser = await User.create({
       fullName,
       mobileNo,
-      email: email?.toLowerCase(),
+      email: email ? email.toLowerCase() : `${mobileNo}@pk.local`,
       password: password ? await bcrypt.hash(password, 10) : undefined,
     });
 
@@ -180,6 +180,46 @@ const UserSignUp = async (req, res) => {
       message: "Something went wrong!",
       error: error.message,
     });
+  }
+};
+
+const GoogleSignUp = async (req, res) => {
+  try {
+    const { fullName, email } = req.body;
+
+    if (!fullName || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Full name and email are required for Google signup.",
+      });
+    }
+
+    let user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      user = await User.create({
+        fullName,
+        email: email.toLowerCase(),
+      });
+    }
+
+    const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    return res.json({
+      success: true,
+      message: "Logged in with Google successfully.",
+      data: { user, accessToken, refreshToken },
+    });
+  } catch (error) {
+    console.error("Error in GoogleSignUp:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };
 
@@ -621,4 +661,5 @@ export {
   addFavourite,
   removeFavourite,
   getFavourites,
+  GoogleSignUp,
 };

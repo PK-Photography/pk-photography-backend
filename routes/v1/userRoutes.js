@@ -10,6 +10,7 @@ import {
   UserForgotPassword,
   UserResetPassword,
   UserSignUp,
+  GoogleSignUp,
   UserVerifyEmailOTP,
   addFavourite,
   removeFavourite,
@@ -31,6 +32,7 @@ const testMiddleware = (req, res, next) => {
 //  ===================|| Auth Routes ||======================
 // router.post("/booking/email", sendBookingEmail);
 router.post("/user/signup", UserSignUp);
+router.post("/user/google-signup", GoogleSignUp);
 router.post("/user/verify_otp", UserVerifyEmailOTP);
 router.post("/user/login", login);
 router.post("/user/reset-password", UserResetPassword);
