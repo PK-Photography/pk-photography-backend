@@ -11,6 +11,7 @@ import careerRoutes from "./v1/careerRoutes.js";
 import serviceRoutes from "./v1/serviceRoutes.js";
 import subServiceRoutes from "./v1/subServiceRoutes.js";
 import talentRoutes from "./v1/talentRoutes.js";
+import weddingBlogRoutes from "./v1/weddingBlogRoutes.js";
 
 const router = express.Router();
 
@@ -32,5 +33,6 @@ router.use(careerRoutes);
 router.use(serviceRoutes);
 router.use(subServiceRoutes);
 router.use(talentRoutes);
+router.use(weddingBlogRoutes);
 
 export default router;
