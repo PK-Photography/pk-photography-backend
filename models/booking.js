@@ -29,11 +29,11 @@ const bookingSchema = new mongoose.Schema({
             "Wedding & Events",
             "Interior",
             "Other",
-            "Silver Package",
-            "Gold Package",
-            "Platinum Package",
-            "Bespoke Package",
-            "Just a Consultation"
+            "silver",
+            "gold",
+            "platinum",
+            "bespoke",
+            "consultation"
         ]
     },
     message: {
