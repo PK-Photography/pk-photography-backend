@@ -23,7 +23,18 @@ const bookingSchema = new mongoose.Schema({
     service: {
         type: String,
         required: true,
-        enum: ["Headshots", "Portrait", "Wedding & Events", "Interior", "Other"], 
+        enum: [
+            "Headshots",
+            "Portrait",
+            "Wedding & Events",
+            "Interior",
+            "Other",
+            "Silver Package",
+            "Gold Package",
+            "Platinum Package",
+            "Bespoke Package",
+            "Just a Consultation"
+        ]
     },
     message: {
         type: String,
