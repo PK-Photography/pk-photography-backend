@@ -34,6 +34,7 @@ const bookingSchema = new mongoose.Schema({
             "platinum",
             "bespoke",
             "consultation"
+            ""
         ]
     },
     message: {
