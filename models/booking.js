@@ -33,7 +33,7 @@ const bookingSchema = new mongoose.Schema({
             "gold",
             "platinum",
             "bespoke",
-            "consultation"
+            "consultation",
             ""
         ]
     },
