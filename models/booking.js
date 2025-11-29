@@ -3,12 +3,12 @@ import mongoose from 'mongoose';
 const bookingSchema = new mongoose.Schema({
     name: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
     },
     email: {
         type: String,
-        required: true,
+        required: false,
         trim: true,
     },
     phone: {
@@ -22,7 +22,7 @@ const bookingSchema = new mongoose.Schema({
     },
     service: {
         type: String,
-        required: true,
+        required: false,
         enum: [
             "Headshots",
             "Portrait",
@@ -42,7 +42,7 @@ const bookingSchema = new mongoose.Schema({
     },
     date: {
         type: Date,
-        required: true,
+        required: false,
     },
     time: {
         type: String,

@@ -10,7 +10,7 @@ export const createBooking = async (req, res) => {
     console.log("Creating booking with data:", req.body);
 
     // Validate required fields
-    if (!name || !email || !phone || !service || !date) {
+    if (!phone) {
       return res.status(400).json({
         success: false,
         message: "Missing required fields",
